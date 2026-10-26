@@ -1,10 +1,10 @@
 package com.biblioteca.service;
 
 import com.biblioteca.config.GestorTransaccion;
-import com.biblioteca.dao.ClienteDAO;
-import com.biblioteca.dao.UsuarioDAO;
+import com.biblioteca.dao.*;
 import com.biblioteca.exception.ValidacionException;
 import com.biblioteca.model.Cliente;
+import com.biblioteca.model.Multa;
 import com.biblioteca.model.Rol;
 import com.biblioteca.model.Usuario;
 import com.biblioteca.security.Autorizador;
@@ -19,7 +19,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Servicio de gestión de clientes y cuentas asociadas de lectores.
+ * Servicio encargado de la administración de clientes y lectores de la biblioteca.
+ * Aplica principios SOLID y control de acceso basado en roles (RBAC).
  */
 public class ClienteService {
 
@@ -27,10 +28,24 @@ public class ClienteService {
 
     private final ClienteDAO clienteDAO;
     private final UsuarioDAO usuarioDAO;
+    private final PrestamoDAO prestamoDAO;
+    private final MultaDAO multaDAO;
+    private final ReservaDAO reservaDAO;
 
     public ClienteService(ClienteDAO clienteDAO, UsuarioDAO usuarioDAO) {
+        this(clienteDAO, usuarioDAO, null, null, null);
+    }
+
+    public ClienteService(ClienteDAO clienteDAO,
+                          UsuarioDAO usuarioDAO,
+                          PrestamoDAO prestamoDAO,
+                          MultaDAO multaDAO,
+                          ReservaDAO reservaDAO) {
         this.clienteDAO = clienteDAO;
         this.usuarioDAO = usuarioDAO;
+        this.prestamoDAO = prestamoDAO;
+        this.multaDAO = multaDAO;
+        this.reservaDAO = reservaDAO;
     }
 
     /**
@@ -75,7 +90,7 @@ public class ClienteService {
 
             Usuario usuarioGuardado = usuarioDAO.guardar(usuario);
 
-            // 2. Crear cliente vinculado al usuario
+            // 2. Crear cliente vinculado
             cliente.setUsuarioId(usuarioGuardado.getId());
             cliente.setFechaRegistro(LocalDate.now());
             clienteDAO.guardar(cliente);
@@ -85,6 +100,11 @@ public class ClienteService {
         });
     }
 
+    /**
+     * Edita los datos personales de un cliente y sincroniza su nombre y DNI con la cuenta de usuario.
+     *
+     * @param cliente Datos actualizados del cliente
+     */
     public void editarCliente(Cliente cliente) {
         Autorizador.requerir(Rol.ADMIN, Rol.BIBLIOTECARIO);
 
@@ -100,8 +120,88 @@ public class ClienteService {
             throw new ValidacionException("El DNI " + cliente.getDni() + " ya está asignado a otro cliente.");
         }
 
-        clienteDAO.actualizar(cliente);
-        logger.info("Datos de cliente ID {} actualizados correctamente", cliente.getId());
+        GestorTransaccion.ejecutar(() -> {
+            clienteDAO.actualizar(cliente);
+
+            // Sincronizar el nombre de usuario (DNI) y el nombre completo en la tabla usuario
+            if (cliente.getUsuarioId() != null) {
+                usuarioDAO.buscarPorId(cliente.getUsuarioId()).ifPresent(u -> {
+                    u.setUsername(cliente.getDni().trim());
+                    u.setNombre(cliente.getNombreCompleto());
+                    usuarioDAO.actualizar(u);
+                });
+            }
+            logger.info("Datos del cliente ID {} actualizados correctamente", cliente.getId());
+            return null;
+        });
+    }
+
+    /**
+     * Elimina a un cliente de la base de datos si no tiene préstamos activos, multas pendientes ni historial protegido.
+     *
+     * @param clienteId Identificador del cliente
+     */
+    public void eliminarCliente(int clienteId) {
+        Autorizador.requerir(Rol.ADMIN, Rol.BIBLIOTECARIO);
+
+        Cliente cliente = clienteDAO.buscarPorId(clienteId)
+                .orElseThrow(() -> new ValidacionException("Cliente no encontrado con ID " + clienteId));
+
+        if (prestamoDAO != null) {
+            int prestamosActivos = prestamoDAO.contarActivosPorCliente(clienteId);
+            if (prestamosActivos > 0) {
+                throw new ValidacionException("No se puede eliminar el cliente porque tiene " + prestamosActivos + " préstamo(s) activo(s).");
+            }
+            if (!prestamoDAO.listarPorCliente(clienteId).isEmpty()) {
+                throw new ValidacionException("El cliente cuenta con historial de préstamos en la biblioteca. " +
+                        "Por integridad de auditoría no se puede eliminar físicamente; utilice 'Activar / Desactivar' para suspender su cuenta.");
+            }
+        }
+
+        if (multaDAO != null) {
+            List<Multa> multasPendientes = multaDAO.listarPendientesPorCliente(clienteId);
+            if (!multasPendientes.isEmpty()) {
+                throw new ValidacionException("No se puede eliminar el cliente porque tiene multas pendientes de pago.");
+            }
+            if (!multaDAO.listarPorCliente(clienteId).isEmpty()) {
+                throw new ValidacionException("El cliente cuenta con historial de multas registrado. " +
+                        "Utilice 'Activar / Desactivar' para suspender su cuenta.");
+            }
+        }
+
+        if (reservaDAO != null && !reservaDAO.listarPorCliente(clienteId).isEmpty()) {
+            throw new ValidacionException("El cliente cuenta con historial de reservas en el sistema. " +
+                    "Utilice 'Activar / Desactivar' para suspender su cuenta.");
+        }
+
+        GestorTransaccion.ejecutar(() -> {
+            clienteDAO.eliminar(clienteId);
+            if (cliente.getUsuarioId() != null) {
+                usuarioDAO.eliminar(cliente.getUsuarioId());
+            }
+            logger.info("Cliente ID {} y su usuario asociado eliminados exitosamente", clienteId);
+            return null;
+        });
+    }
+
+    /**
+     * Restablece la contraseña de un cliente generando una nueva clave temporal obligatoria.
+     *
+     * @param clienteId Identificador del cliente
+     * @return Nueva contraseña temporal generada
+     */
+    public String restablecerClaveTemporal(int clienteId) {
+        Autorizador.requerir(Rol.ADMIN, Rol.BIBLIOTECARIO);
+
+        Cliente cliente = clienteDAO.buscarPorId(clienteId)
+                .orElseThrow(() -> new ValidacionException("Cliente no encontrado con ID " + clienteId));
+
+        String claveTemporal = generarClaveTemporal();
+        String hash = PasswordHasher.hashear(claveTemporal);
+
+        usuarioDAO.cambiarClave(cliente.getUsuarioId(), hash, true);
+        logger.info("Contraseña temporal restablecida para cliente ID {} (DNI '{}')", clienteId, cliente.getDni());
+        return claveTemporal;
     }
 
     public List<Cliente> buscarClientes(String texto) {
@@ -140,11 +240,9 @@ public class ClienteService {
     }
 
     private String generarClaveTemporal() {
-        // Garantizar al menos 1 mayúscula, 1 minúscula y 1 número (mínimo 8 caracteres)
         String upper = RandomStringUtils.random(2, "ABCDEFGHJKLMNPQRSTUVWXYZ");
         String lower = RandomStringUtils.random(4, "abcdefghijkmnpqrstuvwxyz");
         String numbers = RandomStringUtils.random(2, "23456789");
         return upper + lower + numbers;
     }
 }
-

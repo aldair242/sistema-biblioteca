@@ -20,6 +20,8 @@ public class BibliotecarioView extends JFrame {
     private BibliotecarioController controller;
 
     // Pestaña Clientes
+    private Integer clienteSeleccionadoId = null;
+    private JLabel lblClienteModo;
     private JTextField txtClienteDni;
     private JTextField txtClienteNombres;
     private JTextField txtClienteApellidos;
@@ -30,22 +32,28 @@ public class BibliotecarioView extends JFrame {
     private DefaultTableModel modeloClientes;
     private JButton btnClienteRegistrar;
     private JButton btnClienteActualizar;
+    private JButton btnClienteEliminar;
+    private JButton btnClienteRestablecerClave;
     private JButton btnClienteToggleActivo;
     private JButton btnClienteBuscar;
     private JButton btnClienteLimpiar;
 
     // Pestaña Catálogo
+    private Integer catLibroSeleccionadoId = null;
     private JTextField txtCatalogoBuscar;
     private JTable tablaCatLibros;
     private DefaultTableModel modeloCatLibros;
     private JTable tablaCatEjemplares;
     private DefaultTableModel modeloCatEjemplares;
     private JButton btnCatCambiarEstado;
+    private JButton btnCatAgregarEjemplares;
+    private JButton btnCatEliminarEjemplar;
 
     // Pestaña Préstamos
     private JTextField txtPrestamoDni;
     private JTextField txtPrestamoCodigoBarras;
     private JButton btnPrestamoRegistrar;
+    private JButton btnPrestamoRenovar;
     private JTable tablaPrestamos;
     private DefaultTableModel modeloPrestamos;
 
@@ -81,7 +89,7 @@ public class BibliotecarioView extends JFrame {
     private void initComponents() {
         setTitle("Sistema de Gestión de Biblioteca - Panel del Bibliotecario");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1050, 720);
+        setSize(1080, 740);
         setLocationRelativeTo(null);
 
         JPanel panelContenedor = new JPanel(new BorderLayout());
@@ -111,52 +119,81 @@ public class BibliotecarioView extends JFrame {
 
     private JPanel crearPanelClientes() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
+        panel.setBorder(new EmptyBorder(12, 15, 12, 15));
 
         // Formulario Superior
-        JPanel panelForm = new JPanel(new GridLayout(3, 4, 8, 8));
-        panelForm.setBorder(new TitledBorder("Datos del Cliente"));
+        JPanel panelFormContenedor = new JPanel(new BorderLayout(6, 6));
+        panelFormContenedor.setBorder(new TitledBorder("Gestión y Registro de Clientes"));
 
-        panelForm.add(new JLabel("DNI (8 dígitos):"));
+        lblClienteModo = new JLabel("Modo: Nuevo Cliente (Seleccione una fila de la tabla para editar o eliminar)");
+        lblClienteModo.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblClienteModo.setForeground(new Color(108, 117, 125));
+        lblClienteModo.setBorder(new EmptyBorder(2, 6, 4, 6));
+        panelFormContenedor.add(lblClienteModo, BorderLayout.NORTH);
+
+        JPanel panelCampos = new JPanel(new GridLayout(2, 6, 8, 8));
+        panelCampos.setBorder(new EmptyBorder(4, 6, 6, 6));
+
+        panelCampos.add(new JLabel("DNI (8 dígitos):"));
         txtClienteDni = new JTextField();
-        panelForm.add(txtClienteDni);
+        panelCampos.add(txtClienteDni);
 
-        panelForm.add(new JLabel("Nombres:"));
+        panelCampos.add(new JLabel("Nombres:"));
         txtClienteNombres = new JTextField();
-        panelForm.add(txtClienteNombres);
+        panelCampos.add(txtClienteNombres);
 
-        panelForm.add(new JLabel("Apellidos:"));
+        panelCampos.add(new JLabel("Apellidos:"));
         txtClienteApellidos = new JTextField();
-        panelForm.add(txtClienteApellidos);
+        panelCampos.add(txtClienteApellidos);
 
-        panelForm.add(new JLabel("Correo Electrónico:"));
+        panelCampos.add(new JLabel("Correo Electrónico:"));
         txtClienteEmail = new JTextField();
-        panelForm.add(txtClienteEmail);
+        panelCampos.add(txtClienteEmail);
 
-        panelForm.add(new JLabel("Teléfono:"));
+        panelCampos.add(new JLabel("Teléfono:"));
         txtClienteTelefono = new JTextField();
-        panelForm.add(txtClienteTelefono);
+        panelCampos.add(txtClienteTelefono);
 
-        JPanel panelBotonesForm = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        // Espaciador en cuadrícula
+        panelCampos.add(new JLabel(""));
+        panelCampos.add(new JLabel(""));
+
+        panelFormContenedor.add(panelCampos, BorderLayout.CENTER);
+
+        // Barra de Botones del formulario
+        JPanel panelBotonesForm = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 5));
         btnClienteRegistrar = new JButton("Registrar Nuevo");
         btnClienteRegistrar.setBackground(new Color(13, 110, 253));
         btnClienteRegistrar.setForeground(Color.WHITE);
+        btnClienteRegistrar.setFont(new Font("Segoe UI", Font.BOLD, 12));
 
         btnClienteActualizar = new JButton("Guardar Cambios");
+        btnClienteActualizar.setBackground(new Color(25, 135, 84));
+        btnClienteActualizar.setForeground(Color.WHITE);
+        btnClienteActualizar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+
+        btnClienteEliminar = new JButton("Eliminar Cliente");
+        btnClienteEliminar.setBackground(new Color(220, 53, 69));
+        btnClienteEliminar.setForeground(Color.WHITE);
+        btnClienteEliminar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+
+        btnClienteRestablecerClave = new JButton("Restablecer Clave");
         btnClienteToggleActivo = new JButton("Activar / Desactivar");
         btnClienteLimpiar = new JButton("Limpiar");
 
         panelBotonesForm.add(btnClienteRegistrar);
         panelBotonesForm.add(btnClienteActualizar);
+        panelBotonesForm.add(btnClienteEliminar);
+        panelBotonesForm.add(btnClienteRestablecerClave);
         panelBotonesForm.add(btnClienteToggleActivo);
         panelBotonesForm.add(btnClienteLimpiar);
-        panelForm.add(panelBotonesForm);
+        panelFormContenedor.add(panelBotonesForm, BorderLayout.SOUTH);
 
-        panel.add(panelForm, BorderLayout.NORTH);
+        panel.add(panelFormContenedor, BorderLayout.NORTH);
 
         // Barra de Búsqueda y Tabla
-        JPanel panelCentro = new JPanel(new BorderLayout(5, 5));
-        JPanel panelBuscar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        JPanel panelCentro = new JPanel(new BorderLayout(6, 6));
+        JPanel panelBuscar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 4));
         panelBuscar.add(new JLabel("Buscar por DNI o Apellidos:"));
         txtClienteBuscar = new JTextField(20);
         btnClienteBuscar = new JButton("Buscar");
@@ -170,6 +207,7 @@ public class BibliotecarioView extends JFrame {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         tablaClientes = new JTable(modeloClientes);
+        tablaClientes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         panelCentro.add(new JScrollPane(tablaClientes), BorderLayout.CENTER);
         panel.add(panelCentro, BorderLayout.CENTER);
 
@@ -182,23 +220,43 @@ public class BibliotecarioView extends JFrame {
         });
 
         btnClienteActualizar.addActionListener(e -> {
-            int row = tablaClientes.getSelectedRow();
-            if (row >= 0 && controller != null) {
-                int id = (int) modeloClientes.getValueAt(row, 0);
-                controller.editarCliente(id, txtClienteDni.getText(), txtClienteNombres.getText(),
+            if (clienteSeleccionadoId == null) {
+                mostrarAdvertencia("Por favor seleccione un cliente de la tabla para editar sus datos.");
+                return;
+            }
+            if (controller != null) {
+                controller.editarCliente(clienteSeleccionadoId, txtClienteDni.getText(), txtClienteNombres.getText(),
                         txtClienteApellidos.getText(), txtClienteEmail.getText(), txtClienteTelefono.getText());
-            } else {
-                mostrarAdvertencia("Seleccione un cliente de la tabla para editar.");
+            }
+        });
+
+        btnClienteEliminar.addActionListener(e -> {
+            if (clienteSeleccionadoId == null) {
+                mostrarAdvertencia("Por favor seleccione un cliente de la tabla para eliminar.");
+                return;
+            }
+            if (controller != null) {
+                controller.eliminarCliente(clienteSeleccionadoId);
+            }
+        });
+
+        btnClienteRestablecerClave.addActionListener(e -> {
+            if (clienteSeleccionadoId == null) {
+                mostrarAdvertencia("Por favor seleccione un cliente de la tabla para restablecer su clave.");
+                return;
+            }
+            if (controller != null) {
+                controller.restablecerClaveCliente(clienteSeleccionadoId);
             }
         });
 
         btnClienteToggleActivo.addActionListener(e -> {
-            int row = tablaClientes.getSelectedRow();
-            if (row >= 0 && controller != null) {
-                int id = (int) modeloClientes.getValueAt(row, 0);
-                controller.toggleActivoCliente(id);
-            } else {
-                mostrarAdvertencia("Seleccione un cliente de la tabla.");
+            if (clienteSeleccionadoId == null) {
+                mostrarAdvertencia("Por favor seleccione un cliente de la tabla.");
+                return;
+            }
+            if (controller != null) {
+                controller.toggleActivoCliente(clienteSeleccionadoId);
             }
         });
 
@@ -217,11 +275,15 @@ public class BibliotecarioView extends JFrame {
             if (!e.getValueIsAdjusting()) {
                 int row = tablaClientes.getSelectedRow();
                 if (row >= 0) {
+                    clienteSeleccionadoId = (int) modeloClientes.getValueAt(row, 0);
                     txtClienteDni.setText(modeloClientes.getValueAt(row, 1).toString());
                     txtClienteNombres.setText(modeloClientes.getValueAt(row, 2).toString());
                     txtClienteApellidos.setText(modeloClientes.getValueAt(row, 3).toString());
                     txtClienteEmail.setText(modeloClientes.getValueAt(row, 4) != null ? modeloClientes.getValueAt(row, 4).toString() : "");
                     txtClienteTelefono.setText(modeloClientes.getValueAt(row, 5) != null ? modeloClientes.getValueAt(row, 5).toString() : "");
+
+                    lblClienteModo.setText("Modo: Editando Cliente ID #" + clienteSeleccionadoId + " (" + txtClienteNombres.getText() + " " + txtClienteApellidos.getText() + ")");
+                    lblClienteModo.setForeground(new Color(13, 110, 253));
                 }
             }
         });
@@ -231,7 +293,7 @@ public class BibliotecarioView extends JFrame {
 
     private JPanel crearPanelCatalogo() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
+        panel.setBorder(new EmptyBorder(12, 15, 12, 15));
 
         JPanel panelBuscar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         panelBuscar.add(new JLabel("Buscar Libro:"));
@@ -244,26 +306,39 @@ public class BibliotecarioView extends JFrame {
         panel.add(panelBuscar, BorderLayout.NORTH);
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        splitPane.setResizeWeight(0.6);
+        splitPane.setResizeWeight(0.55);
 
         modeloCatLibros = new DefaultTableModel(new String[]{"ID", "ISBN", "Título", "Autor", "Categoría", "Editorial", "Disponibles"}, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         tablaCatLibros = new JTable(modeloCatLibros);
+        tablaCatLibros.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         splitPane.setTopComponent(new JScrollPane(tablaCatLibros));
 
         JPanel panelEjemplares = new JPanel(new BorderLayout(5, 5));
-        panelEjemplares.setBorder(new TitledBorder("Ejemplares y Estado Físico"));
+        panelEjemplares.setBorder(new TitledBorder("Ejemplares y Estado Físico del Libro Seleccionado"));
 
         modeloCatEjemplares = new DefaultTableModel(new String[]{"ID Ejemplar", "Código de Barras", "Estado"}, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         tablaCatEjemplares = new JTable(modeloCatEjemplares);
+        tablaCatEjemplares.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         panelEjemplares.add(new JScrollPane(tablaCatEjemplares), BorderLayout.CENTER);
 
-        JPanel panelBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel panelBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
+        btnCatAgregarEjemplares = new JButton("+ Agregar Ejemplares");
+        btnCatAgregarEjemplares.setBackground(new Color(13, 110, 253));
+        btnCatAgregarEjemplares.setForeground(Color.WHITE);
+
         btnCatCambiarEstado = new JButton("Cambiar Estado (Disponible / Mantenimiento / Baja)");
+
+        btnCatEliminarEjemplar = new JButton("Eliminar Ejemplar");
+        btnCatEliminarEjemplar.setBackground(new Color(220, 53, 69));
+        btnCatEliminarEjemplar.setForeground(Color.WHITE);
+
+        panelBtns.add(btnCatAgregarEjemplares);
         panelBtns.add(btnCatCambiarEstado);
+        panelBtns.add(btnCatEliminarEjemplar);
         panelEjemplares.add(panelBtns, BorderLayout.SOUTH);
 
         splitPane.setBottomComponent(panelEjemplares);
@@ -282,17 +357,44 @@ public class BibliotecarioView extends JFrame {
             if (!e.getValueIsAdjusting()) {
                 int row = tablaCatLibros.getSelectedRow();
                 if (row >= 0 && controller != null) {
-                    int libroId = (int) modeloCatLibros.getValueAt(row, 0);
-                    controller.cargarEjemplaresDeLibro(libroId);
+                    catLibroSeleccionadoId = (int) modeloCatLibros.getValueAt(row, 0);
+                    controller.cargarEjemplaresDeLibro(catLibroSeleccionadoId);
+                }
+            }
+        });
+
+        btnCatAgregarEjemplares.addActionListener(e -> {
+            if (catLibroSeleccionadoId == null) {
+                mostrarAdvertencia("Seleccione primero un libro de la tabla superior para agregarle ejemplares.");
+                return;
+            }
+            String cantStr = JOptionPane.showInputDialog(this, "¿Cuántos ejemplares desea agregar al libro seleccionado?", "1");
+            if (cantStr != null && !cantStr.trim().isEmpty() && controller != null) {
+                try {
+                    int cant = Integer.parseInt(cantStr.trim());
+                    if (cant <= 0) throw new NumberFormatException();
+                    controller.agregarEjemplares(catLibroSeleccionadoId, cant);
+                } catch (NumberFormatException ex) {
+                    mostrarAdvertencia("Debe ingresar un número entero mayor a 0.");
                 }
             }
         });
 
         btnCatCambiarEstado.addActionListener(e -> {
             int row = tablaCatEjemplares.getSelectedRow();
-            if (row >= 0 && controller != null) {
+            if (row >= 0 && controller != null && catLibroSeleccionadoId != null) {
                 int ejemplarId = (int) modeloCatEjemplares.getValueAt(row, 0);
-                controller.cambiarEstadoEjemplarDialog(ejemplarId);
+                controller.cambiarEstadoEjemplarDialog(ejemplarId, catLibroSeleccionadoId);
+            } else {
+                mostrarAdvertencia("Seleccione un ejemplar de la tabla inferior.");
+            }
+        });
+
+        btnCatEliminarEjemplar.addActionListener(e -> {
+            int row = tablaCatEjemplares.getSelectedRow();
+            if (row >= 0 && controller != null && catLibroSeleccionadoId != null) {
+                int ejemplarId = (int) modeloCatEjemplares.getValueAt(row, 0);
+                controller.eliminarEjemplar(ejemplarId, catLibroSeleccionadoId);
             } else {
                 mostrarAdvertencia("Seleccione un ejemplar de la tabla inferior.");
             }
@@ -303,7 +405,7 @@ public class BibliotecarioView extends JFrame {
 
     private JPanel crearPanelPrestamos() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
+        panel.setBorder(new EmptyBorder(12, 15, 12, 15));
 
         JPanel panelForm = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
         panelForm.setBorder(new TitledBorder("Registrar Nuevo Préstamo"));
@@ -331,12 +433,32 @@ public class BibliotecarioView extends JFrame {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         tablaPrestamos = new JTable(modeloPrestamos);
+        tablaPrestamos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         panelTabla.add(new JScrollPane(tablaPrestamos), BorderLayout.CENTER);
+
+        JPanel panelAccionesPrestamo = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        btnPrestamoRenovar = new JButton("Renovar Préstamo Seleccionado");
+        btnPrestamoRenovar.setBackground(new Color(25, 135, 84));
+        btnPrestamoRenovar.setForeground(Color.WHITE);
+        btnPrestamoRenovar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        panelAccionesPrestamo.add(btnPrestamoRenovar);
+        panelTabla.add(panelAccionesPrestamo, BorderLayout.SOUTH);
+
         panel.add(panelTabla, BorderLayout.CENTER);
 
         btnPrestamoRegistrar.addActionListener(e -> {
             if (controller != null) {
                 controller.registrarPrestamo(txtPrestamoDni.getText(), txtPrestamoCodigoBarras.getText());
+            }
+        });
+
+        btnPrestamoRenovar.addActionListener(e -> {
+            int row = tablaPrestamos.getSelectedRow();
+            if (row >= 0 && controller != null) {
+                int prestamoId = (int) modeloPrestamos.getValueAt(row, 0);
+                controller.renovarPrestamo(prestamoId);
+            } else {
+                mostrarAdvertencia("Seleccione un préstamo de la tabla para renovarlo.");
             }
         });
 
@@ -361,7 +483,6 @@ public class BibliotecarioView extends JFrame {
         panelForm.add(btnDevolucionProcesar);
         panel.add(panelForm, BorderLayout.NORTH);
 
-        // Panel de Resultados de Devolución
         JPanel panelResultado = new JPanel(new BorderLayout(15, 15));
         panelResultado.setBorder(new TitledBorder("Comprobante de Devolución"));
 
@@ -397,7 +518,7 @@ public class BibliotecarioView extends JFrame {
 
     private JPanel crearPanelReservas() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
+        panel.setBorder(new EmptyBorder(12, 15, 12, 15));
 
         JPanel panelForm = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 5));
         panelForm.setBorder(new TitledBorder("Registrar Reserva para Lector"));
@@ -424,6 +545,7 @@ public class BibliotecarioView extends JFrame {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         tablaReservas = new JTable(modeloReservas);
+        tablaReservas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         panel.add(new JScrollPane(tablaReservas), BorderLayout.CENTER);
 
         JPanel panelAcciones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -456,25 +578,31 @@ public class BibliotecarioView extends JFrame {
 
     private JPanel crearPanelMultas() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
+        panel.setBorder(new EmptyBorder(12, 15, 12, 15));
 
         JPanel panelFiltro = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 5));
-        chkSoloPendientes = new JCheckBox("Mostrar solo multas PENDIENTES de pago", true);
-        JButton btnActualizar = new JButton("Refrescar");
+        panelFiltro.setBorder(new TitledBorder("Filtro y Gestión de Multas"));
+
+        chkSoloPendientes = new JCheckBox("Mostrar únicamente multas pendientes de pago", true);
         panelFiltro.add(chkSoloPendientes);
-        panelFiltro.add(btnActualizar);
+
+        JButton btnRefrescar = new JButton("Actualizar");
+        panelFiltro.add(btnRefrescar);
+
         panel.add(panelFiltro, BorderLayout.NORTH);
 
-        modeloMultas = new DefaultTableModel(new String[]{"ID", "Préstamo ID", "Días Retraso", "Tarifa", "Monto (S/.)", "Estado", "Fecha Pago"}, 0) {
+        modeloMultas = new DefaultTableModel(new String[]{"ID Multa", "ID Préstamo", "Días Retraso", "Tarifa/Día", "Total", "Estado", "Fecha Pago"}, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         tablaMultas = new JTable(modeloMultas);
+        tablaMultas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         panel.add(new JScrollPane(tablaMultas), BorderLayout.CENTER);
 
         JPanel panelAcciones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnMultaCobrar = new JButton("Cobrar Multa Seleccionada");
         btnMultaCobrar.setBackground(new Color(25, 135, 84));
         btnMultaCobrar.setForeground(Color.WHITE);
+        btnMultaCobrar.setFont(new Font("Segoe UI", Font.BOLD, 12));
         panelAcciones.add(btnMultaCobrar);
         panel.add(panelAcciones, BorderLayout.SOUTH);
 
@@ -482,7 +610,7 @@ public class BibliotecarioView extends JFrame {
             if (controller != null) controller.cargarMultas(chkSoloPendientes.isSelected());
         });
 
-        btnActualizar.addActionListener(e -> {
+        btnRefrescar.addActionListener(e -> {
             if (controller != null) controller.cargarMultas(chkSoloPendientes.isSelected());
         });
 
@@ -492,7 +620,7 @@ public class BibliotecarioView extends JFrame {
                 int multaId = (int) modeloMultas.getValueAt(row, 0);
                 controller.cobrarMulta(multaId);
             } else {
-                mostrarAdvertencia("Seleccione una multa de la tabla para cobrar.");
+                mostrarAdvertencia("Seleccione una multa de la tabla para registrar su pago.");
             }
         });
 
@@ -587,8 +715,8 @@ public class BibliotecarioView extends JFrame {
 
     public void mostrarModalClaveTemporal(String dni, String nombre, String claveTemporal) {
         String mensaje = "<html><body style='width: 320px; font-family: Segoe UI;'>" +
-                "<h3 style='color: #0d6efd;'>Cliente Registrado con Éxito</h3>" +
-                "<p>Se ha creado la cuenta de usuario para el lector:</p>" +
+                "<h3 style='color: #0d6efd;'>Credenciales del Lector</h3>" +
+                "<p>Se ha configurado la cuenta de usuario para el cliente:</p>" +
                 "<p><b>Nombre:</b> " + nombre + "<br/>" +
                 "<b>Usuario (DNI):</b> " + dni + "<br/>" +
                 "<b>Contraseña Temporal:</b> <span style='background:#ffc107; font-size:14px; padding:2px 6px; font-weight:bold;'>" + claveTemporal + "</span></p>" +
@@ -599,11 +727,15 @@ public class BibliotecarioView extends JFrame {
     }
 
     public void limpiarFormCliente() {
+        clienteSeleccionadoId = null;
         txtClienteDni.setText("");
         txtClienteNombres.setText("");
         txtClienteApellidos.setText("");
         txtClienteEmail.setText("");
         txtClienteTelefono.setText("");
+        tablaClientes.clearSelection();
+        lblClienteModo.setText("Modo: Nuevo Cliente (Seleccione una fila de la tabla para editar o eliminar)");
+        lblClienteModo.setForeground(new Color(108, 117, 125));
     }
 
     public void mostrarMensaje(String msj) {

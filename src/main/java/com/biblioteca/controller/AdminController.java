@@ -3,6 +3,7 @@ package com.biblioteca.controller;
 import com.biblioteca.exception.ValidacionException;
 import com.biblioteca.model.*;
 import com.biblioteca.security.PasswordHasher;
+import com.biblioteca.security.SesionActual;
 import com.biblioteca.service.*;
 import com.biblioteca.util.ExcelExporter;
 import com.biblioteca.util.ManejadorExcepciones;
@@ -38,6 +39,7 @@ public class AdminController {
         view.setVisible(true);
     }
 
+    // --- BIBLIOTECARIOS ---
     public void cargarBibliotecarios() {
         List<Usuario> biblios = serviceFactory.getUsuarioDAO().listarPorRol(Rol.BIBLIOTECARIO);
         view.cargarTablaBibliotecarios(biblios);
@@ -56,19 +58,92 @@ public class AdminController {
             }
 
             if (password == null || password.trim().isEmpty()) {
-                password = "Biblio123!"; // Contraseña por defecto si no se ingresa
+                password = "Biblio" + (int)(Math.random() * 9000 + 1000) + "!"; // Contraseña inicial generada
             }
 
             String hash = PasswordHasher.hashear(password.trim());
             Usuario u = new Usuario(null, username.trim(), hash, Rol.BIBLIOTECARIO, nombre.trim(), true, true, 0, null);
             serviceFactory.getUsuarioDAO().guardar(u);
 
-            view.mostrarMensaje("Bibliotecario registrado exitosamente con usuario '" + username + "'.");
+            view.mostrarModalClaveTemporal(username.trim(), nombre.trim(), password.trim());
             view.limpiarFormBibliotecario();
             cargarBibliotecarios();
 
         } catch (Exception ex) {
             ManejadorExcepciones.manejar(view, "registro de bibliotecario", ex);
+        }
+    }
+
+    public void actualizarBibliotecario(int id, String username, String nombre, String passwordOpcional) {
+        if (username.trim().isEmpty() || nombre.trim().isEmpty()) {
+            view.mostrarAdvertencia("El nombre de usuario y el nombre completo son obligatorios.");
+            return;
+        }
+
+        try {
+            Usuario u = serviceFactory.getUsuarioDAO().buscarPorId(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Bibliotecario no encontrado"));
+
+            var existente = serviceFactory.getUsuarioDAO().buscarPorUsername(username.trim());
+            if (existente.isPresent() && !existente.get().getId().equals(id)) {
+                view.mostrarAdvertencia("El nombre de cuenta '" + username + "' ya pertenece a otro usuario.");
+                return;
+            }
+
+            u.setUsername(username.trim());
+            u.setNombre(nombre.trim());
+
+            if (passwordOpcional != null && !passwordOpcional.trim().isEmpty()) {
+                u.setPasswordHash(PasswordHasher.hashear(passwordOpcional.trim()));
+                u.setDebeCambiarClave(true);
+            }
+
+            serviceFactory.getUsuarioDAO().actualizar(u);
+            view.mostrarMensaje("Bibliotecario actualizado exitosamente.");
+            view.limpiarFormBibliotecario();
+            cargarBibliotecarios();
+        } catch (Exception ex) {
+            ManejadorExcepciones.manejar(view, "actualización de bibliotecario", ex);
+        }
+    }
+
+    public void eliminarBibliotecario(int id) {
+        if (SesionActual.estaAutenticado() && SesionActual.getUsuario().getId() == id) {
+            view.mostrarAdvertencia("No puede eliminar la cuenta con la que actualmente ha iniciado sesión.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(view,
+                "¿Está seguro de eliminar permanentemente a este bibliotecario?",
+                "Confirmar Eliminación", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                serviceFactory.getUsuarioDAO().eliminar(id);
+                view.mostrarMensaje("Bibliotecario eliminado exitosamente.");
+                view.limpiarFormBibliotecario();
+                cargarBibliotecarios();
+            } catch (Exception ex) {
+                view.mostrarAdvertencia("No se puede eliminar físicamente al bibliotecario porque tiene historial de préstamos atendidos.\n" +
+                        "Utilice 'Activar / Desactivar' para suspender su cuenta.");
+            }
+        }
+    }
+
+    public void restablecerClaveBibliotecario(int id) {
+        int confirm = JOptionPane.showConfirmDialog(view,
+                "¿Desea restablecer la contraseña de este bibliotecario con una nueva clave temporal?",
+                "Restablecer Contraseña", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                Usuario u = serviceFactory.getUsuarioDAO().buscarPorId(id)
+                        .orElseThrow(() -> new IllegalArgumentException("Bibliotecario no encontrado"));
+                String claveTemp = "Biblio" + (int)(Math.random() * 9000 + 1000) + "!";
+                String hash = PasswordHasher.hashear(claveTemp);
+                serviceFactory.getUsuarioDAO().cambiarClave(id, hash, true);
+                view.mostrarModalClaveTemporal(u.getUsername(), u.getNombre(), claveTemp);
+            } catch (Exception ex) {
+                ManejadorExcepciones.manejar(view, "restablecimiento de contraseña", ex);
+            }
         }
     }
 
@@ -81,6 +156,7 @@ public class AdminController {
         });
     }
 
+    // --- CATÁLOGO ---
     public void cargarCatalogo() {
         List<Libro> libros = serviceFactory.getCatalogoService().listarTodosLibros();
         view.cargarTablaLibros(libros, id -> serviceFactory.getCatalogoService().contarDisponibles(id));
@@ -103,14 +179,27 @@ public class AdminController {
         }
     }
 
+    public void actualizarLibro(int id, String isbn, String titulo, String autor, String categoria, String editorial, int anio) {
+        try {
+            Libro l = new Libro(id, isbn.trim(), titulo.trim(), autor.trim(), categoria.trim(), editorial.trim(), anio);
+            serviceFactory.getCatalogoService().actualizarLibro(l);
+            view.mostrarMensaje("Libro actualizado exitosamente.");
+            view.limpiarFormLibro();
+            cargarCatalogo();
+        } catch (Exception ex) {
+            ManejadorExcepciones.manejar(view, "actualización de libro", ex);
+        }
+    }
+
     public void eliminarLibro(int id) {
         int confirm = JOptionPane.showConfirmDialog(view,
                 "¿Está seguro de eliminar este libro y todos sus ejemplares no prestados?",
-                "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
+                "Confirmar Eliminación", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 serviceFactory.getCatalogoService().eliminarLibro(id);
                 view.mostrarMensaje("Libro eliminado del catálogo.");
+                view.limpiarFormLibro();
                 cargarCatalogo();
             } catch (Exception ex) {
                 ManejadorExcepciones.manejar(view, "eliminación de libro", ex);
@@ -118,7 +207,34 @@ public class AdminController {
         }
     }
 
-    public void cambiarEstadoEjemplarDialog(int ejemplarId) {
+    public void agregarEjemplares(int libroId, int cantidad) {
+        try {
+            List<Ejemplar> nuevos = serviceFactory.getCatalogoService().agregarMultiplesEjemplares(libroId, cantidad);
+            view.mostrarMensaje("Se agregaron exitosamente " + nuevos.size() + " nuevo(s) ejemplar(es).");
+            cargarCatalogo();
+            cargarEjemplaresDeLibro(libroId);
+        } catch (Exception ex) {
+            ManejadorExcepciones.manejar(view, "adición de ejemplares", ex);
+        }
+    }
+
+    public void eliminarEjemplar(int ejemplarId, int libroId) {
+        int confirm = JOptionPane.showConfirmDialog(view,
+                "¿Está seguro de eliminar físicamente este ejemplar?",
+                "Confirmar Eliminación", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                serviceFactory.getCatalogoService().eliminarEjemplar(ejemplarId);
+                view.mostrarMensaje("Ejemplar eliminado correctamente.");
+                cargarCatalogo();
+                cargarEjemplaresDeLibro(libroId);
+            } catch (Exception ex) {
+                ManejadorExcepciones.manejar(view, "eliminación de ejemplar", ex);
+            }
+        }
+    }
+
+    public void cambiarEstadoEjemplarDialog(int ejemplarId, int libroId) {
         EstadoEjemplar[] estados = {EstadoEjemplar.DISPONIBLE, EstadoEjemplar.EN_MANTENIMIENTO, EstadoEjemplar.BAJA};
         EstadoEjemplar seleccionado = (EstadoEjemplar) JOptionPane.showInputDialog(
                 view,
@@ -134,12 +250,14 @@ public class AdminController {
                 serviceFactory.getCatalogoService().cambiarEstadoEjemplar(ejemplarId, seleccionado);
                 view.mostrarMensaje("Estado del ejemplar actualizado exitosamente.");
                 cargarCatalogo();
+                cargarEjemplaresDeLibro(libroId);
             } catch (Exception ex) {
                 ManejadorExcepciones.manejar(view, "modificación de estado de ejemplar", ex);
             }
         }
     }
 
+    // --- CONFIGURACIÓN ---
     public void cargarConfiguracion() {
         ConfiguracionService cs = serviceFactory.getConfiguracionService();
         view.setValoresConfiguracion(
@@ -171,6 +289,7 @@ public class AdminController {
         }
     }
 
+    // --- REPORTES ---
     public void cargarReporte(int tipo) {
         DefaultTableModel model = new DefaultTableModel();
 
@@ -225,7 +344,6 @@ public class AdminController {
             java.io.File archivoSeleccionado = chooser.getSelectedFile();
             java.io.File archivoNormalizado = ExcelExporter.normalizarRutaArchivo(archivoSeleccionado);
 
-            // Validar si el archivo ya existe y solicitar confirmación para sobrescribir
             if (archivoNormalizado.exists()) {
                 int confirm = JOptionPane.showConfirmDialog(
                         view,

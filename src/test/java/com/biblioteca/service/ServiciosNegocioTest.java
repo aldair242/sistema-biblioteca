@@ -42,6 +42,7 @@ class ServiciosNegocioTest {
     private ReservaService reservaService;
     private PrestamoService prestamoService;
     private ClienteService clienteService;
+    private CatalogoService catalogoService;
 
     @BeforeEach
     void setUp() {
@@ -50,7 +51,8 @@ class ServiciosNegocioTest {
         reservaService = new ReservaService(reservaDAO, ejemplarDAO, configuracionService);
         prestamoService = new PrestamoService(prestamoDAO, ejemplarDAO, clienteDAO, multaDAO, reservaDAO,
                 multaService, reservaService, configuracionService);
-        clienteService = new ClienteService(clienteDAO, usuarioDAO);
+        clienteService = new ClienteService(clienteDAO, usuarioDAO, prestamoDAO, multaDAO, reservaDAO);
+        catalogoService = new CatalogoService(libroDAO, ejemplarDAO, prestamoDAO, reservaDAO);
 
         SesionActual.cerrarSesion();
     }
@@ -86,7 +88,6 @@ class ServiciosNegocioTest {
     @Test
     @DisplayName("Caso 3: Cambio de tarifa vigente por ADMIN y cálculo con nueva tarifa")
     void testCambioDeTarifaYVerificacionNuevaTarifa() {
-        // Autenticar como ADMIN
         SesionActual.iniciarSesion(new Usuario(1, "admin", "hash", Rol.ADMIN, "Admin", true, false, 0, null));
 
         configuracionService.actualizar("MULTA_POR_DIA", "3.00");
@@ -98,59 +99,58 @@ class ServiciosNegocioTest {
         Prestamo prestamo = new Prestamo(1, 1, 1, 1, hoy.minusDays(9), hoy.minusDays(2), null, EstadoPrestamo.ACTIVO, 0);
 
         BigDecimal multa = multaService.calcularMulta(prestamo, hoy);
-        assertEquals(0, new BigDecimal("6.00").compareTo(multa), "2 días de retraso con nueva tarifa 3.00 debe ser 6.00");
+        assertEquals(0, new BigDecimal("6.00").compareTo(multa), "2 días de retraso x nueva tarifa 3.00 debe dar 6.00");
     }
 
     @Test
-    @DisplayName("Caso 4: Cliente bloqueado para pedir prestado si tiene multas pendientes")
-    void testClienteBloqueadoPorMultaPendiente() {
-        SesionActual.iniciarSesion(new Usuario(1, "biblio", "hash", Rol.BIBLIOTECARIO, "Biblio", true, false, 0, null));
+    @DisplayName("Caso 4: Límite de 3 préstamos activos bloquea un cuarto intento")
+    void testLimiteDePrestamosActivosBloqueaNuevoPrestamo() {
+        SesionActual.iniciarSesion(new Usuario(2, "biblio", "hash", Rol.BIBLIOTECARIO, "Bibliotecario", true, false, 0, null));
 
-        Cliente cliente = new Cliente(1, 2, "12345678", "Ana", "Torres", "ana@test.com", "987000111", LocalDate.now());
-        when(clienteDAO.buscarPorDni("12345678")).thenReturn(Optional.of(cliente));
+        String dni = "77889900";
+        Cliente cliente = new Cliente(10, 100, dni, "Juan", "Pérez", "juan@mail.com", "999888777", LocalDate.now());
+        when(clienteDAO.buscarPorDni(dni)).thenReturn(Optional.of(cliente));
 
-        Multa pendiente = new Multa(1, 10, 2, new BigDecimal("1.00"), new BigDecimal("2.00"), EstadoMulta.PENDIENTE, null);
-        when(multaDAO.listarPendientesPorCliente(1)).thenReturn(List.of(pendiente));
-
-        ValidacionException ex = assertThrows(ValidacionException.class,
-                () -> prestamoService.registrarPrestamo("12345678", "L0001-001"));
-
-        assertTrue(ex.getMessage().toLowerCase().contains("multa"));
-    }
-
-    @Test
-    @DisplayName("Caso 5: Cliente bloqueado al alcanzar el límite máximo de préstamos")
-    void testLimiteDePrestamos() {
-        SesionActual.iniciarSesion(new Usuario(1, "biblio", "hash", Rol.BIBLIOTECARIO, "Biblio", true, false, 0, null));
-
-        Cliente cliente = new Cliente(1, 2, "12345678", "Ana", "Torres", "ana@test.com", "987000111", LocalDate.now());
-        when(clienteDAO.buscarPorDni("12345678")).thenReturn(Optional.of(cliente));
-        when(multaDAO.listarPendientesPorCliente(1)).thenReturn(Collections.emptyList());
-
-        // Máximo 3 configurado
         when(configuracionDAO.obtener("MAX_PRESTAMOS")).thenReturn(Optional.of("3"));
-
-        LocalDate hoy = LocalDate.now();
-        List<Prestamo> prestamosActivos = List.of(
-                new Prestamo(1, 1, 1, 1, hoy, hoy.plusDays(5), null, EstadoPrestamo.ACTIVO, 0),
-                new Prestamo(2, 1, 2, 1, hoy, hoy.plusDays(5), null, EstadoPrestamo.ACTIVO, 0),
-                new Prestamo(3, 1, 3, 1, hoy, hoy.plusDays(5), null, EstadoPrestamo.ACTIVO, 0)
+        List<Prestamo> listaTres = List.of(
+                new Prestamo(1, 10, 1, 1, LocalDate.now(), LocalDate.now().plusDays(5), null, EstadoPrestamo.ACTIVO, 0),
+                new Prestamo(2, 10, 2, 1, LocalDate.now(), LocalDate.now().plusDays(5), null, EstadoPrestamo.ACTIVO, 0),
+                new Prestamo(3, 10, 3, 1, LocalDate.now(), LocalDate.now().plusDays(5), null, EstadoPrestamo.ACTIVO, 0)
         );
-        when(prestamoDAO.listarActivosPorCliente(1)).thenReturn(prestamosActivos);
+        when(prestamoDAO.listarActivosPorCliente(10)).thenReturn(listaTres);
 
-        ValidacionException ex = assertThrows(ValidacionException.class,
-                () -> prestamoService.registrarPrestamo("12345678", "L0001-004"));
+        ValidacionException ex = assertThrows(ValidacionException.class, () ->
+                prestamoService.registrarPrestamo(dni, "L0001-001"));
 
-        assertTrue(ex.getMessage().toLowerCase().contains("límite"));
+        assertTrue(ex.getMessage().contains("límite máximo permitido"), "Debe notificar superación de límite");
     }
 
     @Test
-    @DisplayName("Caso 6: Flujo completo de reserva con cola FIFO de 2 clientes")
-    void testFlujoCompletoReservaConColaDeDosClientes() {
+    @DisplayName("Caso 5: Cliente con multa pendiente bloqueado para nuevos préstamos")
+    void testClienteConMultaPendienteBloqueadoParaPrestar() {
+        SesionActual.iniciarSesion(new Usuario(2, "biblio", "hash", Rol.BIBLIOTECARIO, "Bibliotecario", true, false, 0, null));
+
+        String dni = "88990011";
+        Cliente cliente = new Cliente(20, 200, dni, "María", "López", "maria@mail.com", "988776655", LocalDate.now());
+        when(clienteDAO.buscarPorDni(dni)).thenReturn(Optional.of(cliente));
+
+        List<Multa> multasPendientes = Collections.singletonList(
+                new Multa(1, 10, 2, new BigDecimal("2.00"), new BigDecimal("4.00"), EstadoMulta.PENDIENTE, null)
+        );
+        when(multaDAO.listarPendientesPorCliente(20)).thenReturn(multasPendientes);
+
+        ValidacionException ex = assertThrows(ValidacionException.class, () ->
+                prestamoService.registrarPrestamo(dni, "L0002-001"));
+
+        assertTrue(ex.getMessage().contains("pendiente(s) de pago"), "Debe bloquear si tiene multas impagas");
+    }
+
+    @Test
+    @DisplayName("Caso 6: Cola FIFO de reservas asigna ejemplar devuelto al primer cliente")
+    void testColaFifoReservasAsignaAlPrimero() {
         int libroId = 5;
         Ejemplar ejemplar = new Ejemplar(10, libroId, "L0005-001", EstadoEjemplar.PRESTADO);
 
-        // Sin ejemplares disponibles
         when(ejemplarDAO.contarDisponibles(libroId)).thenReturn(0);
         when(reservaDAO.buscarReservaActivaClienteLibro(anyInt(), eq(libroId))).thenReturn(Optional.empty());
 
@@ -160,14 +160,12 @@ class ServiciosNegocioTest {
             return r;
         });
 
-        // Cliente 1 y Cliente 2 reservan
         Reserva resCliente1 = reservaService.crearReserva(101, libroId);
         Reserva resCliente2 = reservaService.crearReserva(102, libroId);
 
         assertEquals(1010, resCliente1.getId());
         assertEquals(1020, resCliente2.getId());
 
-        // Al devolverse el ejemplar, se consulta la cola FIFO
         List<Reserva> colaFifo = new ArrayList<>();
         colaFifo.add(resCliente1);
         colaFifo.add(resCliente2);
@@ -186,24 +184,66 @@ class ServiciosNegocioTest {
     @Test
     @DisplayName("Caso 7: Acceso denegado a operaciones de BIBLIOTECARIO cuando la sesión es de rol CLIENTE")
     void testAccesoDenegadoDeClienteAOperacionesBibliotecario() {
-        // Autenticar como CLIENTE
         SesionActual.iniciarSesion(new Usuario(5, "cliente_lector", "hash", Rol.CLIENTE, "Lector", true, false, 0, null));
 
-        // Intento 1: Registrar préstamo
         assertThrows(AccesoDenegadoException.class,
                 () -> prestamoService.registrarPrestamo("12345678", "L0001-001"));
 
-        // Intento 2: Registrar devolución
         assertThrows(AccesoDenegadoException.class,
                 () -> prestamoService.registrarDevolucion("L0001-001"));
 
-        // Intento 3: Registrar nuevo cliente
         assertThrows(AccesoDenegadoException.class,
                 () -> clienteService.registrarCliente(new Cliente()));
 
-        // Intento 4: Cobrar multa
         assertThrows(AccesoDenegadoException.class,
                 () -> multaService.cobrar(1));
     }
-}
 
+    @Test
+    @DisplayName("Caso 8: Intentar eliminar cliente con préstamos activos lanza ValidacionException")
+    void testEliminarClienteConPrestamosActivosLanzaExcepcion() {
+        SesionActual.iniciarSesion(new Usuario(2, "biblio", "hash", Rol.BIBLIOTECARIO, "Bibliotecario", true, false, 0, null));
+
+        int clienteId = 15;
+        Cliente c = new Cliente(clienteId, 150, "12345678", "Pedro", "Gómez", "pedro@mail.com", "999111222", LocalDate.now());
+        when(clienteDAO.buscarPorId(clienteId)).thenReturn(Optional.of(c));
+        when(prestamoDAO.contarActivosPorCliente(clienteId)).thenReturn(1);
+
+        ValidacionException ex = assertThrows(ValidacionException.class, () ->
+                clienteService.eliminarCliente(clienteId));
+
+        assertTrue(ex.getMessage().contains("préstamo(s) activo(s)"), "Debe impedir eliminar cliente con préstamos activos");
+    }
+
+    @Test
+    @DisplayName("Caso 9: Restablecer clave temporal asigna nueva clave y activa debe_cambiar_clave")
+    void testRestablecerClaveTemporal() {
+        SesionActual.iniciarSesion(new Usuario(2, "biblio", "hash", Rol.BIBLIOTECARIO, "Bibliotecario", true, false, 0, null));
+
+        int clienteId = 25;
+        Cliente c = new Cliente(clienteId, 250, "87654321", "Ana", "Torres", "ana@mail.com", "988222333", LocalDate.now());
+        when(clienteDAO.buscarPorId(clienteId)).thenReturn(Optional.of(c));
+
+        String claveTemp = clienteService.restablecerClaveTemporal(clienteId);
+
+        assertNotNull(claveTemp, "La clave temporal no debe ser nula");
+        assertEquals(8, claveTemp.length(), "La clave temporal generada debe tener 8 caracteres");
+        verify(usuarioDAO).cambiarClave(eq(250), anyString(), eq(true));
+    }
+
+    @Test
+    @DisplayName("Caso 10: Edición de cliente valida DNI duplicado de otro cliente")
+    void testEditarClienteValidaDniDuplicado() {
+        SesionActual.iniciarSesion(new Usuario(2, "biblio", "hash", Rol.BIBLIOTECARIO, "Bibliotecario", true, false, 0, null));
+
+        Cliente c1 = new Cliente(1, 10, "11223344", "Carlos", "Ruiz", "carlos@mail.com", "977111222", LocalDate.now());
+        Cliente c2 = new Cliente(2, 20, "11223344", "Otro", "Usuario", "otro@mail.com", "977333444", LocalDate.now());
+
+        when(clienteDAO.buscarPorDni("11223344")).thenReturn(Optional.of(c2));
+
+        ValidacionException ex = assertThrows(ValidacionException.class, () ->
+                clienteService.editarCliente(c1));
+
+        assertTrue(ex.getMessage().contains("ya está asignado a otro cliente"));
+    }
+}
