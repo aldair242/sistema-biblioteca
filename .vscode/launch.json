@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Ejecutar Biblioteca App",
+            "request": "launch",
+            "mainClass": "com.biblioteca.App",
+            "projectName": "biblioteca"
+        }
+    ]
+}
+

@@ -1,0 +1,25 @@
+# Maven
+target/
+*.class
+dependency-reduced-pom.xml
+
+# Logs
+logs/
+
+# Credenciales de base de datos
+db.properties
+**/db.properties
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# VS Code (ignora todo excepto launch.json y settings.json)
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
+
+# Sistema operativo
+Thumbs.db
+.DS_Store
+
