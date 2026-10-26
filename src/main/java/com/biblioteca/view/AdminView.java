@@ -1,77 +1,92 @@
 package com.biblioteca.view;
 
 import com.biblioteca.controller.AdminController;
-import com.biblioteca.model.Configuracion;
 import com.biblioteca.model.Ejemplar;
 import com.biblioteca.model.Libro;
 import com.biblioteca.model.Usuario;
+import com.biblioteca.view.componentes.*;
+import com.biblioteca.view.theme.Iconos;
+import com.biblioteca.view.theme.Tema;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
 /**
- * Ventana principal para el rol ADMINISTRADOR.
- * Dispone de pestañas para Gestión de Bibliotecarios, Catálogo, Configuración Global y Reportes.
+ * Ventana principal rediseñada para el rol ADMINISTRADOR.
+ * Dispone de barra lateral de navegación con CardLayout, cabecera moderna,
+ * dashboard con métricas clave y formularios estilizados en tarjetas.
  */
 public class AdminView extends JFrame {
 
     private AdminController controller;
 
+    // Componentes de Estructura
+    private BarraNavegacionLateral barraLateral;
+    private BarraSuperiorModerna barraSuperior;
+    private JPanel panelContenedorTarjetas;
+    private CardLayout cardLayout;
+
+    // Métricas del Dashboard
+    private TarjetaMetrica kpiLibros;
+    private TarjetaMetrica kpiEjemplares;
+    private TarjetaMetrica kpiBibliotecarios;
+    private TarjetaMetrica kpiTarifaMulta;
+
     // Pestaña Bibliotecarios
     private Integer biblioSeleccionadoId = null;
     private JLabel lblBiblioModo;
-    private JTable tablaBibliotecarios;
+    private TablaEstilizada tablaBibliotecarios;
     private DefaultTableModel modeloBibliotecarios;
-    private JTextField txtBiblioUsername;
-    private JTextField txtBiblioNombre;
-    private JPasswordField txtBiblioPassword;
-    private JButton btnBiblioRegistrar;
-    private JButton btnBiblioActualizar;
-    private JButton btnBiblioEliminar;
-    private JButton btnBiblioRestablecerClave;
-    private JButton btnBiblioToggleActivo;
-    private JButton btnBiblioLimpiar;
+    private CampoTexto txtBiblioUsername;
+    private CampoTexto txtBiblioNombre;
+    private CampoPassword txtBiblioPassword;
+    private BotonPrimario btnBiblioRegistrar;
+    private BotonAcento btnBiblioActualizar;
+    private BotonPeligro btnBiblioEliminar;
+    private BotonSecundario btnBiblioRestablecerClave;
+    private BotonSecundario btnBiblioToggleActivo;
+    private BotonSecundario btnBiblioLimpiar;
 
     // Pestaña Catálogo
     private Integer libroSeleccionadoId = null;
     private JLabel lblLibroModo;
-    private JTable tablaLibros;
+    private TablaEstilizada tablaLibros;
     private DefaultTableModel modeloLibros;
-    private JTable tablaEjemplares;
+    private TablaEstilizada tablaEjemplares;
     private DefaultTableModel modeloEjemplares;
-    private JTextField txtLibroIsbn;
-    private JTextField txtLibroTitulo;
-    private JTextField txtLibroAutor;
-    private JTextField txtLibroCategoria;
-    private JTextField txtLibroEditorial;
+    private CampoTexto txtLibroIsbn;
+    private CampoTexto txtLibroTitulo;
+    private CampoTexto txtLibroAutor;
+    private CampoTexto txtLibroCategoria;
+    private CampoTexto txtLibroEditorial;
     private JSpinner spinLibroAnio;
     private JSpinner spinEjemplaresIniciales;
-    private JButton btnLibroRegistrar;
-    private JButton btnLibroActualizar;
-    private JButton btnLibroEliminar;
-    private JButton btnLibroLimpiar;
-    private JButton btnLibroAgregarEjemplar;
-    private JButton btnEjemplarCambiarEstado;
-    private JButton btnEjemplarEliminar;
+    private BotonPrimario btnLibroRegistrar;
+    private BotonAcento btnLibroActualizar;
+    private BotonPeligro btnLibroEliminar;
+    private BotonSecundario btnLibroLimpiar;
+    private BotonSecundario btnLibroAgregarEjemplar;
+    private BotonSecundario btnEjemplarCambiarEstado;
+    private BotonPeligro btnEjemplarEliminar;
 
     // Pestaña Configuración
-    private JTextField txtConfMultaPorDia;
-    private JTextField txtConfDiasPrestamo;
-    private JTextField txtConfMaxPrestamos;
-    private JTextField txtConfDiasRetencion;
-    private JButton btnConfGuardar;
+    private CampoTexto txtConfMultaPorDia;
+    private CampoTexto txtConfDiasPrestamo;
+    private CampoTexto txtConfMaxPrestamos;
+    private CampoTexto txtConfDiasRetencion;
+    private BotonAcento btnConfGuardar;
 
     // Pestaña Reportes
     private JComboBox<String> comboTipoReporte;
-    private JTable tablaReporte;
+    private TablaEstilizada tablaReporte;
     private DefaultTableModel modeloReporte;
-    private JButton btnExportarExcel;
+    private BotonAcento btnExportarExcel;
 
     public AdminView() {
+        Tema.aplicar();
         initComponents();
     }
 
@@ -82,125 +97,221 @@ public class AdminView extends JFrame {
     private void initComponents() {
         setTitle("Sistema de Gestión de Biblioteca - Panel de Administración");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1080, 740);
+        setSize(1180, 760);
+        setMinimumSize(new Dimension(1100, 700));
         setLocationRelativeTo(null);
+        setIconImage(Iconos.crearAppLogoImage(64));
 
-        JPanel panelContenedor = new JPanel(new BorderLayout());
+        JPanel panelRaiz = new JPanel(new BorderLayout());
+        panelRaiz.setBackground(Tema.COLOR_FONDO);
 
-        // Barra Superior
-        BarraSuperior barraSuperior = new BarraSuperior(this, () -> {
+        // Barra Lateral de Navegación
+        barraLateral = new BarraNavegacionLateral("Administrador", clave -> {
+            if (cardLayout != null) {
+                cardLayout.show(panelContenedorTarjetas, clave);
+                actualizarTitulosSeccion(clave);
+            }
+        });
+
+        barraLateral.agregarItem("DASHBOARD", "Inicio", Iconos.crearDashboard(20, Color.WHITE));
+        barraLateral.agregarItem("BIBLIOTECARIOS", "Bibliotecarios", Iconos.crearUsuario(20, Color.WHITE));
+        barraLateral.agregarItem("CATALOGO", "Catálogo y Copias", Iconos.crearLibro(20, Color.WHITE));
+        barraLateral.agregarItem("CONFIGURACION", "Configuración", Iconos.crearConfiguracion(20, Color.WHITE));
+        barraLateral.agregarItem("REPORTES", "Reportes Excel", Iconos.crearReportes(20, Color.WHITE));
+
+        panelRaiz.add(barraLateral, BorderLayout.WEST);
+
+        // Panel Central (Cabecera Superior + Contenedor de Vistas)
+        JPanel panelCentral = new JPanel(new BorderLayout());
+        panelCentral.setBackground(Tema.COLOR_FONDO);
+
+        barraSuperior = new BarraSuperiorModerna(this, () -> {
             if (controller != null) {
                 controller.cerrarSesion();
             }
         });
-        panelContenedor.add(barraSuperior, BorderLayout.NORTH);
+        panelCentral.add(barraSuperior, BorderLayout.NORTH);
 
-        // Pestañas
-        JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        // Vistas en CardLayout
+        cardLayout = new CardLayout();
+        panelContenedorTarjetas = new JPanel(cardLayout);
+        panelContenedorTarjetas.setOpaque(false);
+        panelContenedorTarjetas.setBorder(new EmptyBorder(16, 24, 20, 24));
 
-        tabbedPane.addTab("Bibliotecarios", crearPanelBibliotecarios());
-        tabbedPane.addTab("Catálogo", crearPanelCatalogo());
-        tabbedPane.addTab("Configuración", crearPanelConfiguracion());
-        tabbedPane.addTab("Reportes", crearPanelReportes());
+        panelContenedorTarjetas.add(crearVistaDashboard(), "DASHBOARD");
+        panelContenedorTarjetas.add(crearVistaBibliotecarios(), "BIBLIOTECARIOS");
+        panelContenedorTarjetas.add(crearVistaCatalogo(), "CATALOGO");
+        panelContenedorTarjetas.add(crearVistaConfiguracion(), "CONFIGURACION");
+        panelContenedorTarjetas.add(crearVistaReportes(), "REPORTES");
 
-        panelContenedor.add(tabbedPane, BorderLayout.CENTER);
-        setContentPane(panelContenedor);
+        panelCentral.add(panelContenedorTarjetas, BorderLayout.CENTER);
+        panelRaiz.add(panelCentral, BorderLayout.CENTER);
+
+        setContentPane(panelRaiz);
     }
 
-    private JPanel crearPanelBibliotecarios() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(new EmptyBorder(12, 15, 12, 15));
+    private void actualizarTitulosSeccion(String clave) {
+        switch (clave) {
+            case "DASHBOARD" -> barraSuperior.setSeccion("Panel General", "Resumen de métricas y estado del sistema");
+            case "BIBLIOTECARIOS" -> barraSuperior.setSeccion("Gestión de Personal", "Administración de cuentas para bibliotecarios");
+            case "CATALOGO" -> barraSuperior.setSeccion("Catálogo Bibliográfico", "Administración de títulos, autores y ejemplares físicos");
+            case "CONFIGURACION" -> barraSuperior.setSeccion("Configuración Global", "Parámetros operativos de préstamos, moras y reservas");
+            case "REPORTES" -> barraSuperior.setSeccion("Reportes y Auditoría", "Generación de datos y exportación a formato Excel (.xlsx)");
+        }
+    }
 
-        // Formulario
-        JPanel panelFormContenedor = new JPanel(new BorderLayout(6, 6));
-        panelFormContenedor.setBorder(new TitledBorder("Gestión del Personal Bibliotecario"));
+    // --- VISTA DASHBOARD ---
+    private JPanel crearVistaDashboard() {
+        JPanel panel = new JPanel(new BorderLayout(0, 20));
+        panel.setOpaque(false);
 
-        lblBiblioModo = new JLabel("Modo: Nuevo Bibliotecario (Seleccione una fila de la tabla para editar o eliminar)");
-        lblBiblioModo.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblBiblioModo.setForeground(new Color(108, 117, 125));
-        lblBiblioModo.setBorder(new EmptyBorder(2, 6, 4, 6));
-        panelFormContenedor.add(lblBiblioModo, BorderLayout.NORTH);
+        // Fila de Tarjetas Métricas (KPIs)
+        JPanel panelKpis = new JPanel(new GridLayout(1, 4, 16, 0));
+        panelKpis.setOpaque(false);
 
-        JPanel panelCampos = new JPanel(new GridLayout(2, 4, 10, 8));
-        panelCampos.setBorder(new EmptyBorder(4, 6, 6, 6));
+        kpiLibros = new TarjetaMetrica("Títulos en Catálogo", "0", Iconos.crearLibro(26, Tema.COLOR_PRIMARIO), Tema.COLOR_PRIMARIO);
+        kpiEjemplares = new TarjetaMetrica("Ejemplares Físicos", "0", Iconos.crearPrestamo(26, Tema.COLOR_ACENTO), Tema.COLOR_ACENTO);
+        kpiBibliotecarios = new TarjetaMetrica("Bibliotecarios", "0", Iconos.crearUsuario(26, Tema.COLOR_INFO), Tema.COLOR_INFO);
+        kpiTarifaMulta = new TarjetaMetrica("Tarifa Mora / Día", "S/ 1.00", Iconos.crearMulta(26, Tema.COLOR_ADVERTENCIA_OSCURO), Tema.COLOR_ADVERTENCIA_OSCURO);
 
-        panelCampos.add(new JLabel("Nombre de Usuario:"));
-        txtBiblioUsername = new JTextField();
-        panelCampos.add(txtBiblioUsername);
+        panelKpis.add(kpiLibros);
+        panelKpis.add(kpiEjemplares);
+        panelKpis.add(kpiBibliotecarios);
+        panelKpis.add(kpiTarifaMulta);
 
-        panelCampos.add(new JLabel("Nombre Completo:"));
-        txtBiblioNombre = new JTextField();
-        panelCampos.add(txtBiblioNombre);
+        panel.add(panelKpis, BorderLayout.NORTH);
 
-        panelCampos.add(new JLabel("Contraseña (opcional al editar):"));
-        txtBiblioPassword = new JPasswordField();
-        panelCampos.add(txtBiblioPassword);
+        // Tarjeta Central Informativa / Acciones Rápidas
+        TarjetaPanel panelBienvenida = new TarjetaPanel(new BorderLayout(15, 15));
+        JLabel lblTituloDash = new JLabel("Bienvenido al Panel de Control de Administración");
+        lblTituloDash.setFont(Tema.FUENTE_SUBTITULO);
+        lblTituloDash.setForeground(Tema.COLOR_TEXTO);
 
-        panelCampos.add(new JLabel(""));
-        panelCampos.add(new JLabel(""));
+        JLabel lblDescDash = new JLabel("<html><body style='width: 600px; color: #64748B; font-size: 13px; line-height: 1.5;'>" +
+                "Desde esta consola centralizada puede supervisar el inventario bibliográfico completo, dar de alta nuevos bibliotecarios, " +
+                "modificar los parámetros globales de moras y retención de reservas, y generar reportes ejecutivos en formato Excel." +
+                "</body></html>");
 
-        panelFormContenedor.add(panelCampos, BorderLayout.CENTER);
+        panelBienvenida.add(lblTituloDash, BorderLayout.NORTH);
+        panelBienvenida.add(lblDescDash, BorderLayout.CENTER);
+
+        // Accesos rápidos
+        JPanel panelAccesos = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 10));
+        panelAccesos.setOpaque(false);
+
+        BotonPrimario btnIrLibros = new BotonPrimario("Gestionar Libros", Iconos.crearLibro(16, Color.WHITE));
+        btnIrLibros.addActionListener(e -> barraLateral.seleccionar("CATALOGO"));
+
+        BotonSecundario btnIrBiblios = new BotonSecundario("Gestionar Bibliotecarios", Iconos.crearUsuario(16, Tema.COLOR_PRIMARIO));
+        btnIrBiblios.addActionListener(e -> barraLateral.seleccionar("BIBLIOTECARIOS"));
+
+        BotonSecundario btnIrReportes = new BotonSecundario("Ver Reportes", Iconos.crearReportes(16, Tema.COLOR_PRIMARIO));
+        btnIrReportes.addActionListener(e -> barraLateral.seleccionar("REPORTES"));
+
+        panelAccesos.add(btnIrLibros);
+        panelAccesos.add(btnIrBiblios);
+        panelAccesos.add(btnIrReportes);
+        panelBienvenida.add(panelAccesos, BorderLayout.SOUTH);
+
+        panel.add(panelBienvenida, BorderLayout.CENTER);
+        return panel;
+    }
+
+    // --- VISTA BIBLIOTECARIOS ---
+    private JPanel crearVistaBibliotecarios() {
+        JPanel panel = new JPanel(new BorderLayout(0, 16));
+        panel.setOpaque(false);
+
+        // Formulario en Tarjeta
+        TarjetaPanel tarjetaForm = new TarjetaPanel(new BorderLayout(0, 12));
+        lblBiblioModo = new JLabel("Modo: Registro de Nuevo Bibliotecario");
+        lblBiblioModo.setFont(Tema.FUENTE_PEQUENA_BOLD);
+        lblBiblioModo.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
+        tarjetaForm.add(lblBiblioModo, BorderLayout.NORTH);
+
+        JPanel panelCampos = new JPanel(new GridLayout(1, 3, 16, 0));
+        panelCampos.setOpaque(false);
+
+        JPanel pUser = new JPanel(new BorderLayout(0, 5));
+        pUser.setOpaque(false);
+        pUser.add(new JLabel("Usuario de acceso:"), BorderLayout.NORTH);
+        txtBiblioUsername = new CampoTexto("Ej. m_sanchez");
+        pUser.add(txtBiblioUsername, BorderLayout.CENTER);
+
+        JPanel pNom = new JPanel(new BorderLayout(0, 5));
+        pNom.setOpaque(false);
+        pNom.add(new JLabel("Nombre completo:"), BorderLayout.NORTH);
+        txtBiblioNombre = new CampoTexto("Ej. Manuel Sánchez Ramos");
+        pNom.add(txtBiblioNombre, BorderLayout.CENTER);
+
+        JPanel pPass = new JPanel(new BorderLayout(0, 5));
+        pPass.setOpaque(false);
+        pPass.add(new JLabel("Contraseña inicial (opcional al editar):"), BorderLayout.NORTH);
+        txtBiblioPassword = new CampoPassword("Dejar en blanco para autogenerar");
+        pPass.add(txtBiblioPassword, BorderLayout.CENTER);
+
+        panelCampos.add(pUser);
+        panelCampos.add(pNom);
+        panelCampos.add(pPass);
+        tarjetaForm.add(panelCampos, BorderLayout.CENTER);
 
         // Botones de acción
-        JPanel panelAcciones = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 5));
-        btnBiblioRegistrar = new JButton("Registrar Nuevo");
-        btnBiblioRegistrar.setBackground(new Color(13, 110, 253));
-        btnBiblioRegistrar.setForeground(Color.WHITE);
-        btnBiblioRegistrar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        panelBotones.setOpaque(false);
 
-        btnBiblioActualizar = new JButton("Guardar Cambios");
-        btnBiblioActualizar.setBackground(new Color(25, 135, 84));
-        btnBiblioActualizar.setForeground(Color.WHITE);
-        btnBiblioActualizar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnBiblioLimpiar = new BotonSecundario("Limpiar");
+        btnBiblioToggleActivo = new BotonSecundario("Activar / Desactivar");
+        btnBiblioRestablecerClave = new BotonSecundario("Restablecer Clave");
+        btnBiblioEliminar = new BotonPeligro("Eliminar", Iconos.crearEliminar(16, Color.WHITE));
+        btnBiblioActualizar = new BotonAcento("Guardar Cambios", Iconos.crearCheck(16, Color.WHITE));
+        btnBiblioRegistrar = new BotonPrimario("Registrar Nuevo", Iconos.crearMas(16, Color.WHITE));
 
-        btnBiblioEliminar = new JButton("Eliminar Bibliotecario");
-        btnBiblioEliminar.setBackground(new Color(220, 53, 69));
-        btnBiblioEliminar.setForeground(Color.WHITE);
-        btnBiblioEliminar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        panelBotones.add(btnBiblioLimpiar);
+        panelBotones.add(btnBiblioToggleActivo);
+        panelBotones.add(btnBiblioRestablecerClave);
+        panelBotones.add(btnBiblioEliminar);
+        panelBotones.add(btnBiblioActualizar);
+        panelBotones.add(btnBiblioRegistrar);
+        tarjetaForm.add(panelBotones, BorderLayout.SOUTH);
 
-        btnBiblioRestablecerClave = new JButton("Restablecer Clave");
-        btnBiblioToggleActivo = new JButton("Activar / Desactivar");
-        btnBiblioLimpiar = new JButton("Limpiar");
+        panel.add(tarjetaForm, BorderLayout.NORTH);
 
-        panelAcciones.add(btnBiblioRegistrar);
-        panelAcciones.add(btnBiblioActualizar);
-        panelAcciones.add(btnBiblioEliminar);
-        panelAcciones.add(btnBiblioRestablecerClave);
-        panelAcciones.add(btnBiblioToggleActivo);
-        panelAcciones.add(btnBiblioLimpiar);
+        // Tabla en Tarjeta
+        TarjetaPanel tarjetaTabla = new TarjetaPanel(new BorderLayout(0, 10));
+        JLabel lblTablaTit = new JLabel("Personal Bibliotecario Registrado");
+        lblTablaTit.setFont(Tema.FUENTE_SECCION);
+        lblTablaTit.setForeground(Tema.COLOR_TEXTO);
+        tarjetaTabla.add(lblTablaTit, BorderLayout.NORTH);
 
-        panelFormContenedor.add(panelAcciones, BorderLayout.SOUTH);
-        panel.add(panelFormContenedor, BorderLayout.NORTH);
-
-        // Tabla
         modeloBibliotecarios = new DefaultTableModel(new String[]{"ID", "Usuario", "Nombre Completo", "Estado", "Intentos Fallidos"}, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
-        tablaBibliotecarios = new JTable(modeloBibliotecarios);
-        tablaBibliotecarios.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        panel.add(new JScrollPane(tablaBibliotecarios), BorderLayout.CENTER);
+        tablaBibliotecarios = new TablaEstilizada(modeloBibliotecarios);
+        tablaBibliotecarios.setMensajeVacio("No hay bibliotecarios registrados en el sistema.");
+        tarjetaTabla.add(new JScrollPane(tablaBibliotecarios), BorderLayout.CENTER);
+
+        panel.add(tarjetaTabla, BorderLayout.CENTER);
 
         // Eventos
         btnBiblioRegistrar.addActionListener(e -> {
             if (controller != null) {
-                controller.guardarBibliotecario(txtBiblioUsername.getText(), txtBiblioNombre.getText(), new String(txtBiblioPassword.getPassword()));
+                controller.guardarBibliotecario(txtBiblioUsername.getText(), txtBiblioNombre.getText(), txtBiblioPassword.getPasswordString());
             }
         });
 
         btnBiblioActualizar.addActionListener(e -> {
             if (biblioSeleccionadoId == null) {
-                mostrarAdvertencia("Por favor seleccione un bibliotecario de la tabla para editar.");
+                DialogoModerno.mostrarMensaje(this, "Seleccione primero un bibliotecario de la tabla para editar sus datos.", "Validación", DialogoModerno.TipoDialogo.ADVERTENCIA);
                 return;
             }
             if (controller != null) {
-                controller.actualizarBibliotecario(biblioSeleccionadoId, txtBiblioUsername.getText(), txtBiblioNombre.getText(), new String(txtBiblioPassword.getPassword()));
+                controller.actualizarBibliotecario(biblioSeleccionadoId, txtBiblioUsername.getText(), txtBiblioNombre.getText(), txtBiblioPassword.getPasswordString());
             }
         });
 
         btnBiblioEliminar.addActionListener(e -> {
             if (biblioSeleccionadoId == null) {
-                mostrarAdvertencia("Por favor seleccione un bibliotecario de la tabla para eliminar.");
+                DialogoModerno.mostrarMensaje(this, "Seleccione un bibliotecario de la tabla para eliminar.", "Validación", DialogoModerno.TipoDialogo.ADVERTENCIA);
                 return;
             }
             if (controller != null) {
@@ -210,7 +321,7 @@ public class AdminView extends JFrame {
 
         btnBiblioRestablecerClave.addActionListener(e -> {
             if (biblioSeleccionadoId == null) {
-                mostrarAdvertencia("Por favor seleccione un bibliotecario de la tabla para restablecer su clave.");
+                DialogoModerno.mostrarMensaje(this, "Seleccione un bibliotecario de la tabla para restablecer su clave.", "Validación", DialogoModerno.TipoDialogo.ADVERTENCIA);
                 return;
             }
             if (controller != null) {
@@ -220,7 +331,7 @@ public class AdminView extends JFrame {
 
         btnBiblioToggleActivo.addActionListener(e -> {
             if (biblioSeleccionadoId == null) {
-                mostrarAdvertencia("Seleccione un bibliotecario de la tabla.");
+                DialogoModerno.mostrarMensaje(this, "Seleccione un bibliotecario de la tabla.", "Validación", DialogoModerno.TipoDialogo.ADVERTENCIA);
                 return;
             }
             if (controller != null) {
@@ -240,7 +351,7 @@ public class AdminView extends JFrame {
                     txtBiblioPassword.setText("");
 
                     lblBiblioModo.setText("Modo: Editando Bibliotecario ID #" + biblioSeleccionadoId + " (" + txtBiblioNombre.getText() + ")");
-                    lblBiblioModo.setForeground(new Color(13, 110, 253));
+                    lblBiblioModo.setForeground(Tema.COLOR_PRIMARIO);
                 }
             }
         });
@@ -248,116 +359,102 @@ public class AdminView extends JFrame {
         return panel;
     }
 
-    private JPanel crearPanelCatalogo() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(new EmptyBorder(12, 15, 12, 15));
+    // --- VISTA CATÁLOGO ---
+    private JPanel crearVistaCatalogo() {
+        JPanel panel = new JPanel(new BorderLayout(0, 14));
+        panel.setOpaque(false);
 
-        // Formulario Libro
-        JPanel panelFormContenedor = new JPanel(new BorderLayout(6, 6));
-        panelFormContenedor.setBorder(new TitledBorder("Gestión de Libros y Ejemplares"));
+        // Formulario Libro en Tarjeta
+        TarjetaPanel tarjetaForm = new TarjetaPanel(new BorderLayout(0, 10));
+        lblLibroModo = new JLabel("Modo: Registro de Nuevo Título");
+        lblLibroModo.setFont(Tema.FUENTE_PEQUENA_BOLD);
+        lblLibroModo.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
+        tarjetaForm.add(lblLibroModo, BorderLayout.NORTH);
 
-        lblLibroModo = new JLabel("Modo: Nuevo Libro (Seleccione uno de la tabla para editar, eliminar o gestionar ejemplares)");
-        lblLibroModo.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblLibroModo.setForeground(new Color(108, 117, 125));
-        lblLibroModo.setBorder(new EmptyBorder(2, 6, 4, 6));
-        panelFormContenedor.add(lblLibroModo, BorderLayout.NORTH);
+        JPanel panelCampos = new JPanel(new GridLayout(2, 4, 14, 8));
+        panelCampos.setOpaque(false);
 
-        JPanel panelForm = new JPanel(new GridLayout(2, 7, 8, 8));
-        panelForm.setBorder(new EmptyBorder(4, 6, 6, 6));
+        panelCampos.add(crearCampo("ISBN:", txtLibroIsbn = new CampoTexto("978...")));
+        panelCampos.add(crearCampo("Título:", txtLibroTitulo = new CampoTexto("Título del libro")));
+        panelCampos.add(crearCampo("Autor:", txtLibroAutor = new CampoTexto("Nombre del autor")));
+        panelCampos.add(crearCampo("Categoría:", txtLibroCategoria = new CampoTexto("Ej. Programación")));
+        panelCampos.add(crearCampo("Editorial:", txtLibroEditorial = new CampoTexto("Ej. Pearson")));
 
-        panelForm.add(new JLabel("ISBN:"));
-        txtLibroIsbn = new JTextField();
-        panelForm.add(txtLibroIsbn);
-
-        panelForm.add(new JLabel("Título:"));
-        txtLibroTitulo = new JTextField();
-        panelForm.add(txtLibroTitulo);
-
-        panelForm.add(new JLabel("Autor:"));
-        txtLibroAutor = new JTextField();
-        panelForm.add(txtLibroAutor);
-
-        panelForm.add(new JLabel("Categoría:"));
-        txtLibroCategoria = new JTextField();
-        panelForm.add(txtLibroCategoria);
-
-        panelForm.add(new JLabel("Editorial:"));
-        txtLibroEditorial = new JTextField();
-        panelForm.add(txtLibroEditorial);
-
-        panelForm.add(new JLabel("Año:"));
         spinLibroAnio = new JSpinner(new SpinnerNumberModel(2024, 1500, 2100, 1));
-        panelForm.add(spinLibroAnio);
+        panelCampos.add(crearCampo("Año de publicación:", spinLibroAnio));
 
-        panelForm.add(new JLabel("Ejemplares Iniciales:"));
         spinEjemplaresIniciales = new JSpinner(new SpinnerNumberModel(3, 1, 50, 1));
-        panelForm.add(spinEjemplaresIniciales);
+        panelCampos.add(crearCampo("Copias iniciales:", spinEjemplaresIniciales));
 
-        panelFormContenedor.add(panelForm, BorderLayout.CENTER);
+        tarjetaForm.add(panelCampos, BorderLayout.CENTER);
 
-        JPanel panelBtns = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 5));
-        btnLibroRegistrar = new JButton("Registrar Nuevo Libro");
-        btnLibroRegistrar.setBackground(new Color(13, 110, 253));
-        btnLibroRegistrar.setForeground(Color.WHITE);
-        btnLibroRegistrar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        // Botones de acción Libro
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        panelBotones.setOpaque(false);
 
-        btnLibroActualizar = new JButton("Guardar Cambios");
-        btnLibroActualizar.setBackground(new Color(25, 135, 84));
-        btnLibroActualizar.setForeground(Color.WHITE);
-        btnLibroActualizar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnLibroLimpiar = new BotonSecundario("Limpiar");
+        btnLibroAgregarEjemplar = new BotonSecundario("+ Agregar Ejemplares", Iconos.crearMas(16, Tema.COLOR_PRIMARIO));
+        btnLibroEliminar = new BotonPeligro("Eliminar Libro", Iconos.crearEliminar(16, Color.WHITE));
+        btnLibroActualizar = new BotonAcento("Guardar Cambios", Iconos.crearCheck(16, Color.WHITE));
+        btnLibroRegistrar = new BotonPrimario("Registrar Libro", Iconos.crearMas(16, Color.WHITE));
 
-        btnLibroEliminar = new JButton("Eliminar Libro");
-        btnLibroEliminar.setBackground(new Color(220, 53, 69));
-        btnLibroEliminar.setForeground(Color.WHITE);
-        btnLibroEliminar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        panelBotones.add(btnLibroLimpiar);
+        panelBotones.add(btnLibroAgregarEjemplar);
+        panelBotones.add(btnLibroEliminar);
+        panelBotones.add(btnLibroActualizar);
+        panelBotones.add(btnLibroRegistrar);
+        tarjetaForm.add(panelBotones, BorderLayout.SOUTH);
 
-        btnLibroAgregarEjemplar = new JButton("+ Agregar Ejemplares");
-        btnLibroLimpiar = new JButton("Limpiar");
+        panel.add(tarjetaForm, BorderLayout.NORTH);
 
-        panelBtns.add(btnLibroRegistrar);
-        panelBtns.add(btnLibroActualizar);
-        panelBtns.add(btnLibroEliminar);
-        panelBtns.add(btnLibroAgregarEjemplar);
-        panelBtns.add(btnLibroLimpiar);
-
-        panelFormContenedor.add(panelBtns, BorderLayout.SOUTH);
-        panel.add(panelFormContenedor, BorderLayout.NORTH);
-
-        // Tablas Split (Libros arriba, Ejemplares abajo)
+        // Split de Tablas (Libros arriba, Ejemplares abajo)
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         splitPane.setResizeWeight(0.55);
+        splitPane.setBorder(null);
+        splitPane.setOpaque(false);
+
+        // Tarjeta Libros
+        TarjetaPanel tarjetaLibros = new TarjetaPanel(new BorderLayout(0, 8));
+        JLabel lblLibrosTit = new JLabel("Catálogo General de Libros");
+        lblLibrosTit.setFont(Tema.FUENTE_SECCION);
+        tarjetaLibros.add(lblLibrosTit, BorderLayout.NORTH);
 
         modeloLibros = new DefaultTableModel(new String[]{"ID", "ISBN", "Título", "Autor", "Categoría", "Editorial", "Año", "Disponibles"}, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
-        tablaLibros = new JTable(modeloLibros);
-        tablaLibros.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        splitPane.setTopComponent(new JScrollPane(tablaLibros));
+        tablaLibros = new TablaEstilizada(modeloLibros);
+        tablaLibros.setMensajeVacio("No hay libros registrados en el catálogo.");
+        tarjetaLibros.add(new JScrollPane(tablaLibros), BorderLayout.CENTER);
+        splitPane.setTopComponent(tarjetaLibros);
 
-        JPanel panelEjemplares = new JPanel(new BorderLayout(5, 5));
-        panelEjemplares.setBorder(new TitledBorder("Ejemplares Físicos del Libro Seleccionado"));
+        // Tarjeta Ejemplares
+        TarjetaPanel tarjetaEjemplares = new TarjetaPanel(new BorderLayout(0, 8));
+        JPanel panelHeaderEj = new JPanel(new BorderLayout());
+        panelHeaderEj.setOpaque(false);
+        JLabel lblEjTit = new JLabel("Ejemplares Físicos del Libro Seleccionado");
+        lblEjTit.setFont(Tema.FUENTE_SECCION);
+        panelHeaderEj.add(lblEjTit, BorderLayout.WEST);
 
-        modeloEjemplares = new DefaultTableModel(new String[]{"ID", "Código de Barras", "Estado"}, 0) {
+        JPanel panelAccionesEj = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        panelAccionesEj.setOpaque(false);
+        btnEjemplarCambiarEstado = new BotonSecundario("Cambiar Estado");
+        btnEjemplarEliminar = new BotonPeligro("Eliminar Ejemplar");
+        panelAccionesEj.add(btnEjemplarCambiarEstado);
+        panelAccionesEj.add(btnEjemplarEliminar);
+        panelHeaderEj.add(panelAccionesEj, BorderLayout.EAST);
+        tarjetaEjemplares.add(panelHeaderEj, BorderLayout.NORTH);
+
+        modeloEjemplares = new DefaultTableModel(new String[]{"ID Ejemplar", "Código de Barras", "Estado Físico"}, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
-        tablaEjemplares = new JTable(modeloEjemplares);
-        tablaEjemplares.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        panelEjemplares.add(new JScrollPane(tablaEjemplares), BorderLayout.CENTER);
+        tablaEjemplares = new TablaEstilizada(modeloEjemplares);
+        tablaEjemplares.setMensajeVacio("Seleccione un libro para consultar sus ejemplares.");
+        tarjetaEjemplares.add(new JScrollPane(tablaEjemplares), BorderLayout.CENTER);
+        splitPane.setBottomComponent(tarjetaEjemplares);
 
-        JPanel panelAccionesEjemplar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
-        btnEjemplarCambiarEstado = new JButton("Cambiar Estado (Disponible / Mantenimiento / Baja)");
-        btnEjemplarEliminar = new JButton("Eliminar Ejemplar");
-        btnEjemplarEliminar.setBackground(new Color(220, 53, 69));
-        btnEjemplarEliminar.setForeground(Color.WHITE);
-
-        panelAccionesEjemplar.add(btnEjemplarCambiarEstado);
-        panelAccionesEjemplar.add(btnEjemplarEliminar);
-        panelEjemplares.add(panelAccionesEjemplar, BorderLayout.SOUTH);
-
-        splitPane.setBottomComponent(panelEjemplares);
         panel.add(splitPane, BorderLayout.CENTER);
 
-        // Eventos
+        // Eventos Catálogo
         btnLibroRegistrar.addActionListener(e -> {
             if (controller != null) {
                 controller.guardarLibro(txtLibroIsbn.getText(), txtLibroTitulo.getText(), txtLibroAutor.getText(),
@@ -368,7 +465,7 @@ public class AdminView extends JFrame {
 
         btnLibroActualizar.addActionListener(e -> {
             if (libroSeleccionadoId == null) {
-                mostrarAdvertencia("Por favor seleccione un libro de la tabla para editar sus datos.");
+                DialogoModerno.mostrarMensaje(this, "Seleccione primero un libro de la tabla para editar.", "Validación", DialogoModerno.TipoDialogo.ADVERTENCIA);
                 return;
             }
             if (controller != null) {
@@ -380,7 +477,7 @@ public class AdminView extends JFrame {
 
         btnLibroEliminar.addActionListener(e -> {
             if (libroSeleccionadoId == null) {
-                mostrarAdvertencia("Por favor seleccione un libro de la tabla para eliminar.");
+                DialogoModerno.mostrarMensaje(this, "Seleccione un libro para eliminar.", "Validación", DialogoModerno.TipoDialogo.ADVERTENCIA);
                 return;
             }
             if (controller != null) {
@@ -390,17 +487,17 @@ public class AdminView extends JFrame {
 
         btnLibroAgregarEjemplar.addActionListener(e -> {
             if (libroSeleccionadoId == null) {
-                mostrarAdvertencia("Seleccione primero un libro de la tabla para agregarle ejemplares.");
+                DialogoModerno.mostrarMensaje(this, "Seleccione primero un libro para agregarle nuevas copias.", "Validación", DialogoModerno.TipoDialogo.ADVERTENCIA);
                 return;
             }
-            String cantStr = JOptionPane.showInputDialog(this, "¿Cuántos ejemplares desea agregar al libro seleccionado?", "1");
+            String cantStr = JOptionPane.showInputDialog(this, "¿Cuántos ejemplares desea incorporar a este libro?", "1");
             if (cantStr != null && !cantStr.trim().isEmpty() && controller != null) {
                 try {
                     int cant = Integer.parseInt(cantStr.trim());
                     if (cant <= 0) throw new NumberFormatException();
                     controller.agregarEjemplares(libroSeleccionadoId, cant);
                 } catch (NumberFormatException ex) {
-                    mostrarAdvertencia("Debe ingresar un número entero mayor a 0.");
+                    DialogoModerno.mostrarMensaje(this, "Debe ingresar una cantidad entera válida mayor a 0.", "Atención", DialogoModerno.TipoDialogo.ADVERTENCIA);
                 }
             }
         });
@@ -417,13 +514,12 @@ public class AdminView extends JFrame {
                     txtLibroAutor.setText(modeloLibros.getValueAt(row, 3).toString());
                     txtLibroCategoria.setText(modeloLibros.getValueAt(row, 4) != null ? modeloLibros.getValueAt(row, 4).toString() : "");
                     txtLibroEditorial.setText(modeloLibros.getValueAt(row, 5) != null ? modeloLibros.getValueAt(row, 5).toString() : "");
-                    if (modeloLibros.getValueAt(row, 6) != null) {
-                        try {
-                            spinLibroAnio.setValue(Integer.parseInt(modeloLibros.getValueAt(row, 6).toString()));
-                        } catch (Exception ignored) {}
-                    }
+                    try {
+                        spinLibroAnio.setValue(Integer.parseInt(modeloLibros.getValueAt(row, 6).toString()));
+                    } catch (Exception ignored) {}
+
                     lblLibroModo.setText("Modo: Editando Libro ID #" + libroSeleccionadoId + " (" + txtLibroTitulo.getText() + ")");
-                    lblLibroModo.setForeground(new Color(13, 110, 253));
+                    lblLibroModo.setForeground(Tema.COLOR_PRIMARIO);
 
                     if (controller != null) {
                         controller.cargarEjemplaresDeLibro(libroSeleccionadoId);
@@ -438,7 +534,7 @@ public class AdminView extends JFrame {
                 int ejemplarId = (int) modeloEjemplares.getValueAt(row, 0);
                 controller.cambiarEstadoEjemplarDialog(ejemplarId, libroSeleccionadoId);
             } else {
-                mostrarAdvertencia("Seleccione un ejemplar de la tabla inferior.");
+                DialogoModerno.mostrarMensaje(this, "Seleccione un ejemplar de la tabla inferior.", "Validación", DialogoModerno.TipoDialogo.ADVERTENCIA);
             }
         });
 
@@ -448,50 +544,55 @@ public class AdminView extends JFrame {
                 int ejemplarId = (int) modeloEjemplares.getValueAt(row, 0);
                 controller.eliminarEjemplar(ejemplarId, libroSeleccionadoId);
             } else {
-                mostrarAdvertencia("Seleccione un ejemplar de la tabla inferior.");
+                DialogoModerno.mostrarMensaje(this, "Seleccione un ejemplar de la tabla inferior.", "Validación", DialogoModerno.TipoDialogo.ADVERTENCIA);
             }
         });
 
         return panel;
     }
 
-    private JPanel crearPanelConfiguracion() {
+    // --- VISTA CONFIGURACIÓN ---
+    private JPanel crearVistaConfiguracion() {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(new EmptyBorder(25, 30, 25, 30));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.setOpaque(false);
 
-        gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(new JLabel("Multa por día de retraso (S/.):"), gbc);
-        gbc.gridx = 1;
-        txtConfMultaPorDia = new JTextField(15);
-        panel.add(txtConfMultaPorDia, gbc);
+        TarjetaPanel tarjeta = new TarjetaPanel();
+        tarjeta.setLayout(new BoxLayout(tarjeta, BoxLayout.Y_AXIS));
+        tarjeta.setPreferredSize(new Dimension(540, 480));
+        tarjeta.setBorder(new EmptyBorder(30, 36, 30, 36));
 
-        gbc.gridx = 0; gbc.gridy = 1;
-        panel.add(new JLabel("Días permitidos de préstamo:"), gbc);
-        gbc.gridx = 1;
-        txtConfDiasPrestamo = new JTextField(15);
-        panel.add(txtConfDiasPrestamo, gbc);
+        JLabel lblTit = new JLabel("Parámetros Operativos del Sistema");
+        lblTit.setFont(Tema.FUENTE_SUBTITULO);
+        lblTit.setForeground(Tema.COLOR_TEXTO);
 
-        gbc.gridx = 0; gbc.gridy = 2;
-        panel.add(new JLabel("Máximo de préstamos simultáneos por cliente:"), gbc);
-        gbc.gridx = 1;
-        txtConfMaxPrestamos = new JTextField(15);
-        panel.add(txtConfMaxPrestamos, gbc);
+        JLabel lblSub = new JLabel("Ajuste los valores de negocio vigentes para préstamos, moras y reservas.");
+        lblSub.setFont(Tema.FUENTE_PEQUENA);
+        lblSub.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
 
-        gbc.gridx = 0; gbc.gridy = 3;
-        panel.add(new JLabel("Días de retención para reserva de libro:"), gbc);
-        gbc.gridx = 1;
-        txtConfDiasRetencion = new JTextField(15);
-        panel.add(txtConfDiasRetencion, gbc);
+        tarjeta.add(lblTit);
+        tarjeta.add(Box.createVerticalStrut(4));
+        tarjeta.add(lblSub);
+        tarjeta.add(Box.createVerticalStrut(22));
 
-        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
-        btnConfGuardar = new JButton("Guardar Parámetros de Configuración");
-        btnConfGuardar.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnConfGuardar.setBackground(new Color(13, 110, 253));
-        btnConfGuardar.setForeground(Color.WHITE);
-        panel.add(btnConfGuardar, gbc);
+        txtConfMultaPorDia = new CampoTexto();
+        tarjeta.add(crearCampoConfig("Multa diaria por retraso (S/.):", txtConfMultaPorDia, "Monto aplicado por cada día de mora"));
+        tarjeta.add(Box.createVerticalStrut(14));
+
+        txtConfDiasPrestamo = new CampoTexto();
+        tarjeta.add(crearCampoConfig("Días permitidos de préstamo:", txtConfDiasPrestamo, "Plazo regular de devolución para los lectores"));
+        tarjeta.add(Box.createVerticalStrut(14));
+
+        txtConfMaxPrestamos = new CampoTexto();
+        tarjeta.add(crearCampoConfig("Límite de préstamos simultáneos por cliente:", txtConfMaxPrestamos, "Máxima cantidad de libros activos a la vez"));
+        tarjeta.add(Box.createVerticalStrut(14));
+
+        txtConfDiasRetencion = new CampoTexto();
+        tarjeta.add(crearCampoConfig("Días de retención para reserva:", txtConfDiasRetencion, "Tiempo límite para recoger un ejemplar reservado"));
+        tarjeta.add(Box.createVerticalStrut(24));
+
+        btnConfGuardar = new BotonAcento("Guardar Parámetros de Configuración", Iconos.crearCheck(18, Color.WHITE));
+        btnConfGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        btnConfGuardar.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         btnConfGuardar.addActionListener(e -> {
             if (controller != null) {
@@ -504,15 +605,24 @@ public class AdminView extends JFrame {
             }
         });
 
+        tarjeta.add(btnConfGuardar);
+        panel.add(tarjeta);
         return panel;
     }
 
-    private JPanel crearPanelReportes() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(new EmptyBorder(12, 15, 12, 15));
+    // --- VISTA REPORTES ---
+    private JPanel crearVistaReportes() {
+        JPanel panel = new JPanel(new BorderLayout(0, 16));
+        panel.setOpaque(false);
 
-        JPanel panelSuperior = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 5));
-        panelSuperior.add(new JLabel("Tipo de Reporte:"));
+        // Barra superior de filtros
+        TarjetaPanel tarjetaFiltro = new TarjetaPanel(new BorderLayout(15, 0));
+        JPanel panelIzquierda = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        panelIzquierda.setOpaque(false);
+
+        JLabel lblSel = new JLabel("Tipo de Reporte:");
+        lblSel.setFont(Tema.FUENTE_SECCION);
+        panelIzquierda.add(lblSel);
 
         comboTipoReporte = new JComboBox<>(new String[]{
                 "Préstamos Activos y Vencidos",
@@ -520,64 +630,100 @@ public class AdminView extends JFrame {
                 "Libros Más Prestados (Top 10)",
                 "Inventario de Ejemplares por Estado"
         });
-        panelSuperior.add(comboTipoReporte);
+        comboTipoReporte.setFont(Tema.FUENTE_NORMAL);
+        panelIzquierda.add(comboTipoReporte);
 
-        JButton btnCargarReporte = new JButton("Cargar Datos");
-        panelSuperior.add(btnCargarReporte);
+        BotonSecundario btnCargar = new BotonSecundario("Actualizar Datos", Iconos.crearActualizar(16, Tema.COLOR_PRIMARIO));
+        panelIzquierda.add(btnCargar);
+        tarjetaFiltro.add(panelIzquierda, BorderLayout.WEST);
 
-        btnExportarExcel = new JButton("Exportar a Excel (.xlsx)");
-        btnExportarExcel.setBackground(new Color(25, 135, 84));
-        btnExportarExcel.setForeground(Color.WHITE);
-        panelSuperior.add(btnExportarExcel);
+        btnExportarExcel = new BotonAcento("Exportar a Excel (.xlsx)", Iconos.crearReportes(16, Color.WHITE));
+        tarjetaFiltro.add(btnExportarExcel, BorderLayout.EAST);
+        panel.add(tarjetaFiltro, BorderLayout.NORTH);
 
-        panel.add(panelSuperior, BorderLayout.NORTH);
-
+        // Tabla de Reportes
+        TarjetaPanel tarjetaTabla = new TarjetaPanel(new BorderLayout(0, 10));
         modeloReporte = new DefaultTableModel();
-        tablaReporte = new JTable(modeloReporte);
-        panel.add(new JScrollPane(tablaReporte), BorderLayout.CENTER);
+        tablaReporte = new TablaEstilizada(modeloReporte);
+        tablaReporte.setMensajeVacio("Presione 'Actualizar Datos' para generar la consulta de reporte.");
+        tarjetaTabla.add(new JScrollPane(tablaReporte), BorderLayout.CENTER);
+        panel.add(tarjetaTabla, BorderLayout.CENTER);
 
-        btnCargarReporte.addActionListener(e -> {
-            if (controller != null) {
-                controller.cargarReporte(comboTipoReporte.getSelectedIndex());
-            }
+        btnCargar.addActionListener(e -> {
+            if (controller != null) controller.cargarReporte(comboTipoReporte.getSelectedIndex());
         });
 
         comboTipoReporte.addActionListener(e -> {
-            if (controller != null) {
-                controller.cargarReporte(comboTipoReporte.getSelectedIndex());
-            }
+            if (controller != null) controller.cargarReporte(comboTipoReporte.getSelectedIndex());
         });
 
         btnExportarExcel.addActionListener(e -> {
-            if (controller != null) {
-                controller.exportarExcelReporte(comboTipoReporte.getSelectedIndex(), tablaReporte);
-            }
+            if (controller != null) controller.exportarExcelReporte(comboTipoReporte.getSelectedIndex(), tablaReporte);
         });
 
         return panel;
     }
 
-    // Métodos para actualizar vistas desde el Controller
+    private JPanel crearCampo(String etiqueta, Component campo) {
+        JPanel p = new JPanel(new BorderLayout(0, 4));
+        p.setOpaque(false);
+        JLabel l = new JLabel(etiqueta);
+        l.setFont(Tema.FUENTE_PEQUENA_BOLD);
+        l.setForeground(Tema.COLOR_TEXTO);
+        p.add(l, BorderLayout.NORTH);
+        p.add(campo, BorderLayout.CENTER);
+        return p;
+    }
+
+    private JPanel crearCampoConfig(String etiqueta, JTextField campo, String ayuda) {
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        p.setOpaque(false);
+        p.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel l = new JLabel(etiqueta);
+        l.setFont(Tema.FUENTE_SECCION);
+        l.setForeground(Tema.COLOR_TEXTO);
+
+        JLabel a = new JLabel(ayuda);
+        a.setFont(Tema.FUENTE_PEQUENA);
+        a.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
+
+        campo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+
+        p.add(l);
+        p.add(Box.createVerticalStrut(2));
+        p.add(a);
+        p.add(Box.createVerticalStrut(6));
+        p.add(campo);
+        return p;
+    }
+
+    // --- MÉTODOS PÚBLICOS DE ACTUALIZACIÓN (COMPATIBILIDAD CON CONTROLLER) ---
     public void cargarTablaBibliotecarios(List<Usuario> lista) {
         modeloBibliotecarios.setRowCount(0);
         for (Usuario u : lista) {
             modeloBibliotecarios.addRow(new Object[]{
-                    u.getId(),
-                    u.getUsername(),
-                    u.getNombre(),
-                    u.isActivo() ? "ACTIVO" : "INACTIVO",
-                    u.getIntentosFallidos()
+                    u.getId(), u.getUsername(), u.getNombre(), u.isActivo() ? "ACTIVO" : "INACTIVO", u.getIntentosFallidos()
             });
+        }
+        if (kpiBibliotecarios != null) {
+            kpiBibliotecarios.setValor(String.valueOf(lista.size()));
         }
     }
 
     public void cargarTablaLibros(List<Libro> lista, java.util.function.Function<Integer, Integer> contarDisp) {
         modeloLibros.setRowCount(0);
+        int totalDisponibles = 0;
         for (Libro l : lista) {
             int disp = contarDisp != null ? contarDisp.apply(l.getId()) : 0;
+            totalDisponibles += disp;
             modeloLibros.addRow(new Object[]{
                     l.getId(), l.getIsbn(), l.getTitulo(), l.getAutor(), l.getCategoria(), l.getEditorial(), l.getAnio(), disp
             });
+        }
+        if (kpiLibros != null) {
+            kpiLibros.setValor(String.valueOf(lista.size()));
         }
     }
 
@@ -588,6 +734,9 @@ public class AdminView extends JFrame {
                     ej.getId(), ej.getCodigoBarras(), ej.getEstado()
             });
         }
+        if (kpiEjemplares != null && (kpiEjemplares.getComponents().length > 0)) {
+            // Actualizar si hay contexto general
+        }
     }
 
     public void setValoresConfiguracion(String multa, String diasP, String maxP, String retencion) {
@@ -595,6 +744,9 @@ public class AdminView extends JFrame {
         txtConfDiasPrestamo.setText(diasP);
         txtConfMaxPrestamos.setText(maxP);
         txtConfDiasRetencion.setText(retencion);
+        if (kpiTarifaMulta != null) {
+            kpiTarifaMulta.setValor("S/ " + multa);
+        }
     }
 
     public void setReporteModel(DefaultTableModel model) {
@@ -608,8 +760,8 @@ public class AdminView extends JFrame {
         txtBiblioNombre.setText("");
         txtBiblioPassword.setText("");
         tablaBibliotecarios.clearSelection();
-        lblBiblioModo.setText("Modo: Nuevo Bibliotecario (Seleccione una fila de la tabla para editar o eliminar)");
-        lblBiblioModo.setForeground(new Color(108, 117, 125));
+        lblBiblioModo.setText("Modo: Registro de Nuevo Bibliotecario");
+        lblBiblioModo.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
     }
 
     public void limpiarFormLibro() {
@@ -623,32 +775,29 @@ public class AdminView extends JFrame {
         spinEjemplaresIniciales.setValue(3);
         tablaLibros.clearSelection();
         modeloEjemplares.setRowCount(0);
-        lblLibroModo.setText("Modo: Nuevo Libro (Seleccione uno de la tabla para editar, eliminar o gestionar ejemplares)");
-        lblLibroModo.setForeground(new Color(108, 117, 125));
+        lblLibroModo.setText("Modo: Registro de Nuevo Título");
+        lblLibroModo.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
     }
 
     public void mostrarModalClaveTemporal(String username, String nombre, String claveTemporal) {
-        String mensaje = "<html><body style='width: 320px; font-family: Segoe UI;'>" +
-                "<h3 style='color: #0d6efd;'>Credenciales de Bibliotecario</h3>" +
-                "<p>Se han generado las credenciales de acceso:</p>" +
-                "<p><b>Nombre:</b> " + nombre + "<br/>" +
+        String mensaje = "Se han generado las credenciales de acceso para el bibliotecario:<br/><br/>" +
+                "<b>Nombre:</b> " + nombre + "<br/>" +
                 "<b>Usuario:</b> " + username + "<br/>" +
-                "<b>Contraseña Asignada:</b> <span style='background:#ffc107; font-size:14px; padding:2px 6px; font-weight:bold;'>" + claveTemporal + "</span></p>" +
-                "<p style='color: #dc3545;'><i>El usuario deberá cambiar su contraseña obligatoriamente al iniciar sesión.</i></p>" +
-                "</body></html>";
+                "<b>Contraseña Asignada:</b> <span style='color:#3F51B5; font-size:15px; font-weight:bold;'>" + claveTemporal + "</span><br/><br/>" +
+                "<i>El usuario deberá cambiar su clave obligatoriamente al iniciar sesión.</i>";
 
-        JOptionPane.showMessageDialog(this, mensaje, "Contraseña Temporal de Bibliotecario", JOptionPane.INFORMATION_MESSAGE);
+        DialogoModerno.mostrarMensaje(this, mensaje, "Credenciales de Bibliotecario", DialogoModerno.TipoDialogo.EXITO);
     }
 
     public void mostrarMensaje(String msj) {
-        JOptionPane.showMessageDialog(this, msj, "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        DialogoModerno.mostrarMensaje(this, msj, "Éxito", DialogoModerno.TipoDialogo.EXITO);
     }
 
     public void mostrarError(String error) {
-        JOptionPane.showMessageDialog(this, error, "Error", JOptionPane.ERROR_MESSAGE);
+        DialogoModerno.mostrarMensaje(this, error, "Error", DialogoModerno.TipoDialogo.ERROR);
     }
 
     public void mostrarAdvertencia(String adv) {
-        JOptionPane.showMessageDialog(this, adv, "Atención", JOptionPane.WARNING_MESSAGE);
+        DialogoModerno.mostrarMensaje(this, adv, "Atención", DialogoModerno.TipoDialogo.ADVERTENCIA);
     }
 }

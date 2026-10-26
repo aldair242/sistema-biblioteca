@@ -5,66 +5,103 @@ import com.biblioteca.exception.ValidacionException;
 import com.biblioteca.security.SesionActual;
 import com.biblioteca.security.Validador;
 import com.biblioteca.service.AuthService;
+import com.biblioteca.view.componentes.*;
+import com.biblioteca.view.theme.Iconos;
+import com.biblioteca.view.theme.Tema;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 
 /**
- * Diálogo modal para cambio obligatorio de contraseña en el primer inicio de sesión.
+ * Diálogo modal moderno para cambio obligatorio de contraseña en el primer inicio de sesión.
  */
 public class DialogoCambioClaveObligatorio extends JDialog {
 
     private final AuthService authService;
-    private JPasswordField txtActual;
-    private JPasswordField txtNueva;
-    private JPasswordField txtConfirmar;
+    private CampoPassword txtActual;
+    private CampoPassword txtNueva;
+    private CampoPassword txtConfirmar;
+    private JLabel lblError;
     private boolean claveCambiadaExitosamente = false;
 
     public DialogoCambioClaveObligatorio(Frame parent, AuthService authService) {
-        super(parent, "Cambio Obligatorio de Contraseña", true);
+        super(parent, "Actualización Requerida de Contraseña", true);
         this.authService = authService;
         initComponents();
     }
 
     private void initComponents() {
-        setSize(440, 360);
+        setSize(480, 480);
         setLocationRelativeTo(getParent());
         setResizable(false);
         setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        getContentPane().setBackground(Color.WHITE);
+        setLayout(new BorderLayout());
 
-        JPanel panel = new JPanel(new BorderLayout(15, 15));
-        panel.setBorder(new EmptyBorder(20, 25, 20, 25));
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createEmptyBorder(25, 30, 20, 30));
 
-        // Mensaje superior
-        JLabel lblMensaje = new JLabel("<html><b>Es necesario actualizar su contraseña</b><br/>" +
-                "Por motivos de seguridad, debe cambiar su clave temporal antes de continuar.</html>");
-        lblMensaje.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        panel.add(lblMensaje, BorderLayout.NORTH);
+        // Cabecera con ícono
+        JPanel panelHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        panelHeader.setOpaque(false);
+        panelHeader.add(new JLabel(Iconos.crearConfiguracion(28, Tema.COLOR_PRIMARIO)));
 
-        // Formulario
-        JPanel panelForm = new JPanel(new GridLayout(6, 1, 5, 5));
+        JPanel panelTitulos = new JPanel(new GridLayout(2, 1, 0, 2));
+        panelTitulos.setOpaque(false);
+        JLabel lblTitulo = new JLabel("Cambio Obligatorio de Clave");
+        lblTitulo.setFont(Tema.FUENTE_SUBTITULO);
+        lblTitulo.setForeground(Tema.COLOR_TEXTO);
 
-        panelForm.add(new JLabel("Contraseña actual (temporal):"));
-        txtActual = new JPasswordField();
-        panelForm.add(txtActual);
+        JLabel lblSub = new JLabel("Debe actualizar su contraseña temporal para continuar.");
+        lblSub.setFont(Tema.FUENTE_PEQUENA);
+        lblSub.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
 
-        panelForm.add(new JLabel("Nueva contraseña (mínimo 8 caracteres, mayúscula, minúscula y número):"));
-        txtNueva = new JPasswordField();
-        panelForm.add(txtNueva);
+        panelTitulos.add(lblTitulo);
+        panelTitulos.add(lblSub);
+        panelHeader.add(panelTitulos);
+        panel.add(panelHeader);
 
-        panelForm.add(new JLabel("Confirmar nueva contraseña:"));
-        txtConfirmar = new JPasswordField();
-        panelForm.add(txtConfirmar);
+        panel.add(Box.createVerticalStrut(18));
 
-        panel.add(panelForm, BorderLayout.CENTER);
+        // Banner de error si hay fallo
+        lblError = new JLabel("");
+        lblError.setFont(Tema.FUENTE_PEQUENA_BOLD);
+        lblError.setForeground(Tema.COLOR_PELIGRO);
+        lblError.setVisible(false);
+        panel.add(lblError);
 
-        // Botones
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        JButton btnCancelar = new JButton("Cancelar (Salir)");
-        JButton btnGuardar = new JButton("Actualizar Contraseña");
-        btnGuardar.setBackground(new Color(13, 110, 253));
-        btnGuardar.setForeground(Color.WHITE);
+        panel.add(Box.createVerticalStrut(10));
+
+        // Campos
+        panel.add(crearLabel("Contraseña actual (temporal):"));
+        txtActual = new CampoPassword("Ingrese clave temporal");
+        txtActual.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        panel.add(txtActual);
+
+        panel.add(Box.createVerticalStrut(12));
+        panel.add(crearLabel("Nueva contraseña (mínimo 8 caracteres, mayúscula y número):"));
+        txtNueva = new CampoPassword("Nueva contraseña segura");
+        txtNueva.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        panel.add(txtNueva);
+
+        panel.add(Box.createVerticalStrut(12));
+        panel.add(crearLabel("Confirmar nueva contraseña:"));
+        txtConfirmar = new CampoPassword("Repita la nueva contraseña");
+        txtConfirmar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        panel.add(txtConfirmar);
+
+        add(panel, BorderLayout.CENTER);
+
+        // Barra inferior de botones
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 15));
+        panelBotones.setBackground(new Color(248, 250, 252));
+        panelBotones.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Tema.COLOR_BORDE));
+
+        BotonSecundario btnCancelar = new BotonSecundario("Cancelar y Salir");
+        BotonAcento btnGuardar = new BotonAcento("Actualizar Contraseña", Iconos.crearCheck(16, Color.WHITE));
 
         btnCancelar.addActionListener(e -> {
             authService.logout();
@@ -76,23 +113,36 @@ public class DialogoCambioClaveObligatorio extends JDialog {
 
         panelBotones.add(btnCancelar);
         panelBotones.add(btnGuardar);
-        panel.add(panelBotones, BorderLayout.SOUTH);
+        add(panelBotones, BorderLayout.SOUTH);
 
-        setContentPane(panel);
+        getRootPane().setDefaultButton(btnGuardar);
+        getRootPane().registerKeyboardAction(e -> {
+            authService.logout();
+            claveCambiadaExitosamente = false;
+            dispose();
+        }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+    }
+
+    private JLabel crearLabel(String texto) {
+        JLabel l = new JLabel(texto);
+        l.setFont(Tema.FUENTE_SECCION);
+        l.setForeground(Tema.COLOR_TEXTO);
+        l.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return l;
     }
 
     private void procesarCambio() {
-        String actual = new String(txtActual.getPassword());
-        String nueva = new String(txtNueva.getPassword());
-        String confirmar = new String(txtConfirmar.getPassword());
+        String actual = txtActual.getPasswordString();
+        String nueva = txtNueva.getPasswordString();
+        String confirmar = txtConfirmar.getPasswordString();
 
         if (actual.isEmpty() || nueva.isEmpty() || confirmar.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe completar todos los campos.", "Validación", JOptionPane.WARNING_MESSAGE);
+            mostrarFallo("Debe completar todos los campos requeridos.");
             return;
         }
 
         if (!nueva.equals(confirmar)) {
-            JOptionPane.showMessageDialog(this, "La confirmación no coincide con la nueva contraseña.", "Validación", JOptionPane.WARNING_MESSAGE);
+            mostrarFallo("La confirmación no coincide con la nueva contraseña.");
             return;
         }
 
@@ -101,17 +151,25 @@ public class DialogoCambioClaveObligatorio extends JDialog {
             int usuarioId = SesionActual.getUsuario().getId();
             authService.cambiarClave(usuarioId, actual, nueva);
 
-            JOptionPane.showMessageDialog(this, "Contraseña actualizada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            DialogoModerno.mostrarMensaje(this, "Su contraseña ha sido actualizada con éxito.", "Contraseña Actualizada", DialogoModerno.TipoDialogo.EXITO);
             claveCambiadaExitosamente = true;
             dispose();
 
         } catch (ValidacionException | AutenticacionException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error al cambiar contraseña", JOptionPane.ERROR_MESSAGE);
+            mostrarFallo(ex.getMessage());
         }
+    }
+
+    private void mostrarFallo(String msj) {
+        lblError.setText("• " + msj);
+        lblError.setVisible(true);
+        txtNueva.mostrarError();
+        txtConfirmar.mostrarError();
+        revalidate();
+        repaint();
     }
 
     public boolean isClaveCambiadaExitosamente() {
         return claveCambiadaExitosamente;
     }
 }
-
