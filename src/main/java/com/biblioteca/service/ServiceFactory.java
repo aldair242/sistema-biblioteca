@@ -28,6 +28,7 @@ public final class ServiceFactory {
     private final ReservaService reservaService;
     private final PrestamoService prestamoService;
     private final ReporteService reporteService;
+    private final NotificacionService notificacionService;
 
     private ServiceFactory() {
         this.usuarioDAO = new UsuarioDAOImpl();
@@ -48,6 +49,7 @@ public final class ServiceFactory {
         this.prestamoService = new PrestamoService(prestamoDAO, ejemplarDAO, clienteDAO, multaDAO, reservaDAO,
                 multaService, reservaService, configuracionService);
         this.reporteService = new ReporteService(prestamoDAO, clienteDAO, libroDAO, ejemplarDAO, multaDAO);
+        this.notificacionService = new NotificacionService(clienteDAO, ejemplarDAO, libroDAO, configuracionService);
     }
 
     public static synchronized ServiceFactory getInstancia() {
@@ -119,6 +121,10 @@ public final class ServiceFactory {
 
     public ReporteService getReporteService() {
         return reporteService;
+    }
+
+    public NotificacionService getNotificacionService() {
+        return notificacionService;
     }
 }
 
