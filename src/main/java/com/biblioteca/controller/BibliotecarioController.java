@@ -2,6 +2,7 @@ package com.biblioteca.controller;
 
 import com.biblioteca.model.*;
 import com.biblioteca.service.*;
+import com.biblioteca.util.ManejadorExcepciones;
 import com.biblioteca.view.BibliotecarioView;
 
 import javax.swing.JOptionPane;
@@ -47,14 +48,14 @@ public class BibliotecarioController {
             view.limpiarFormCliente();
             cargarClientes();
         } catch (Exception ex) {
-            view.mostrarError(ex.getMessage());
+            ManejadorExcepciones.manejar(view, "registro de cliente", ex);
         }
     }
 
     public void editarCliente(int id, String dni, String nombres, String apellidos, String email, String telefono) {
         try {
             Cliente c = sf.getClienteService().buscarPorId(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
+                    .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado con ID " + id));
             c.setDni(dni.trim());
             c.setNombres(nombres.trim());
             c.setApellidos(apellidos.trim());
@@ -65,14 +66,14 @@ public class BibliotecarioController {
             view.mostrarMensaje("Información del cliente actualizada con éxito.");
             cargarClientes();
         } catch (Exception ex) {
-            view.mostrarError(ex.getMessage());
+            ManejadorExcepciones.manejar(view, "edición de cliente", ex);
         }
     }
 
     public void toggleActivoCliente(int clienteId) {
         try {
             Cliente c = sf.getClienteService().buscarPorId(clienteId)
-                    .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
+                    .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado con ID " + clienteId));
             Usuario u = sf.getUsuarioDAO().buscarPorId(c.getUsuarioId())
                     .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
@@ -81,7 +82,7 @@ public class BibliotecarioController {
             view.mostrarMensaje("Estado del cliente cambiado a: " + (nuevo ? "ACTIVO" : "INACTIVO"));
             cargarClientes();
         } catch (Exception ex) {
-            view.mostrarError(ex.getMessage());
+            ManejadorExcepciones.manejar(view, "cambio de estado del cliente", ex);
         }
     }
 
@@ -123,7 +124,7 @@ public class BibliotecarioController {
                 view.mostrarMensaje("Estado de ejemplar actualizado.");
                 cargarCatalogo();
             } catch (Exception ex) {
-                view.mostrarError(ex.getMessage());
+                ManejadorExcepciones.manejar(view, "cambio de estado de ejemplar", ex);
             }
         }
     }
@@ -149,7 +150,7 @@ public class BibliotecarioController {
             cargarPrestamos();
             cargarCatalogo();
         } catch (Exception ex) {
-            view.mostrarError(ex.getMessage());
+            ManejadorExcepciones.manejar(view, "registro de préstamo", ex);
         }
     }
 
@@ -163,7 +164,7 @@ public class BibliotecarioController {
             cargarMultas(false);
             cargarReservas();
         } catch (Exception ex) {
-            view.mostrarError(ex.getMessage());
+            ManejadorExcepciones.manejar(view, "registro de devolución", ex);
         }
     }
 
@@ -183,7 +184,7 @@ public class BibliotecarioController {
             view.mostrarMensaje("Reserva en cola FIFO creada con ID " + r.getId());
             cargarReservas();
         } catch (Exception ex) {
-            view.mostrarError(ex.getMessage());
+            ManejadorExcepciones.manejar(view, "creación de reserva", ex);
         }
     }
 
@@ -194,7 +195,7 @@ public class BibliotecarioController {
             cargarReservas();
             cargarCatalogo();
         } catch (Exception ex) {
-            view.mostrarError(ex.getMessage());
+            ManejadorExcepciones.manejar(view, "cancelación de reserva", ex);
         }
     }
 
@@ -212,7 +213,7 @@ public class BibliotecarioController {
             view.mostrarMensaje("Multa cobrada exitosamente.");
             cargarMultas(false);
         } catch (Exception ex) {
-            view.mostrarError(ex.getMessage());
+            ManejadorExcepciones.manejar(view, "cobro de multa", ex);
         }
     }
 
@@ -220,4 +221,3 @@ public class BibliotecarioController {
         authController.cerrarSesion(view);
     }
 }
-

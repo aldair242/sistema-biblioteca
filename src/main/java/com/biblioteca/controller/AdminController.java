@@ -4,6 +4,8 @@ import com.biblioteca.exception.ValidacionException;
 import com.biblioteca.model.*;
 import com.biblioteca.security.PasswordHasher;
 import com.biblioteca.service.*;
+import com.biblioteca.util.ExcelExporter;
+import com.biblioteca.util.ManejadorExcepciones;
 import com.biblioteca.view.AdminView;
 
 import javax.swing.*;
@@ -66,7 +68,7 @@ public class AdminController {
             cargarBibliotecarios();
 
         } catch (Exception ex) {
-            view.mostrarError("Error al registrar bibliotecario: " + ex.getMessage());
+            ManejadorExcepciones.manejar(view, "registro de bibliotecario", ex);
         }
     }
 
@@ -97,7 +99,7 @@ public class AdminController {
             view.limpiarFormLibro();
             cargarCatalogo();
         } catch (Exception ex) {
-            view.mostrarError("Error al guardar libro: " + ex.getMessage());
+            ManejadorExcepciones.manejar(view, "registro de libro", ex);
         }
     }
 
@@ -111,7 +113,7 @@ public class AdminController {
                 view.mostrarMensaje("Libro eliminado del catálogo.");
                 cargarCatalogo();
             } catch (Exception ex) {
-                view.mostrarError("No se pudo eliminar el libro: " + ex.getMessage());
+                ManejadorExcepciones.manejar(view, "eliminación de libro", ex);
             }
         }
     }
@@ -130,11 +132,10 @@ public class AdminController {
         if (seleccionado != null) {
             try {
                 serviceFactory.getCatalogoService().cambiarEstadoEjemplar(ejemplarId, seleccionado);
-                view.mostrarMensaje("Estado actualizado exitosamente.");
-                // Recargar catálogo y ejemplares
+                view.mostrarMensaje("Estado del ejemplar actualizado exitosamente.");
                 cargarCatalogo();
             } catch (Exception ex) {
-                view.mostrarError(ex.getMessage());
+                ManejadorExcepciones.manejar(view, "modificación de estado de ejemplar", ex);
             }
         }
     }
@@ -165,7 +166,7 @@ public class AdminController {
                 view.mostrarMensaje("Parámetros de configuración actualizados exitosamente.");
                 cargarConfiguracion();
             } catch (Exception ex) {
-                view.mostrarError(ex.getMessage());
+                ManejadorExcepciones.manejar(view, "actualización de parámetros de configuración", ex);
             }
         }
     }
@@ -222,7 +223,7 @@ public class AdminController {
         int userSelection = chooser.showSaveDialog(view);
         if (userSelection == JFileChooser.APPROVE_OPTION) {
             java.io.File archivoSeleccionado = chooser.getSelectedFile();
-            java.io.File archivoNormalizado = com.biblioteca.util.ExcelExporter.normalizarRutaArchivo(archivoSeleccionado);
+            java.io.File archivoNormalizado = ExcelExporter.normalizarRutaArchivo(archivoSeleccionado);
 
             // Validar si el archivo ya existe y solicitar confirmación para sobrescribir
             if (archivoNormalizado.exists()) {
@@ -242,7 +243,7 @@ public class AdminController {
                 serviceFactory.getReporteService().exportarReporte(tipo, archivoNormalizado);
                 view.mostrarMensaje("Reporte exportado exitosamente a:\n" + archivoNormalizado.getAbsolutePath());
             } catch (Exception ex) {
-                view.mostrarError("Error al exportar archivo Excel: " + ex.getMessage());
+                ManejadorExcepciones.manejar(view, "exportación de reporte a Excel", ex);
             }
         }
     }
@@ -251,4 +252,3 @@ public class AdminController {
         authController.cerrarSesion(view);
     }
 }
-
