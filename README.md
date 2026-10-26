@@ -98,30 +98,45 @@ Consulte la carpeta [`docs/`](file:///c:/Users/jerem/OneDrive/Desktop/BIBLIOTECA
 
 ---
 
-## 🖥️ Diseño Visual e Interfaces (Java Swing + FlatLaf)
+## 🖥️ Sistema de Diseño Visual y Experiencia de Usuario (Java Swing + FlatLaf)
 
-El sistema presenta una interfaz gráfica moderna, con tipografía clara, márgenes consistentes y una paleta sobria basada en **FlatLaf Light**:
+La interfaz gráfica del sistema ha sido rediseñada integralmente bajo un **Sistema de Diseño Moderno** profesional, ergonómico y cohesivo, implementado en `com.biblioteca.view.theme.Tema` y componentes visuales reutilizables:
 
-1. **Pantalla de Inicio de Sesión (`LoginView`)**:
-   - Tarjeta centralizada con campos de usuario y contraseña.
-   - Control visual de intentos fallidos y bloqueo temporal de 5 minutos.
-   - Diálogo modal interceptor para cambio obligatorio de contraseña provisional en primer acceso.
+### Paleta Cromática y Tokens de Diseño
+- **Primario**: Azul Índigo (`#3F51B5`), utilizado en identidad de marca, navegación activa y acciones primarias.
+- **Acento / Éxito**: Verde bosque (`#2E7D32`), para confirmaciones, guardado y préstamos exitosos.
+- **Peligro / Vencidos**: Rojo carmesí (`#C62828`), para moras, bajas y eliminaciones.
+- **Advertencia**: Ámbar cálido (`#F9A825`), para alertas y estados en mantenimiento.
+- **Superficie y Fondo**: Fondo general (`#F5F7FA`) con tarjetas blancas puras (`#FFFFFF`) con bordes sutiles y sombra flotante.
+- **Tipografía y Geometría**: Tipografía fluida con fallback (`Segoe UI`, `Inter`, `SansSerif`), esquinas redondeadas consistentes (radio arc de 12 a 14 px) y scrollbars minimalistas.
+
+### Componentes Reutilizables de Alta Fidelidad (`com.biblioteca.view.componentes`)
+- `BarraNavegacionLateral`: Barra lateral oscura (`#1E293B`) con isotipo, botones interactivos con indicador de selección índigo y conmutación fluida mediante `CardLayout`.
+- `BarraSuperiorModerna`: Cabecera unificada con título/subtítulo dinámico, avatar circular con iniciales del usuario, badge de rol y botón de cierre de sesión con confirmación.
+- `TarjetaPanel`: Tarjeta blanca con bordes redondeados, borde suave (`#E2E8F0`) y efecto de elevación.
+- `TarjetaMetrica`: KPI Cards para dashboards que muestran métricas cuantitativas clave en tiempo real con íconos vectoriales en círculos tintados.
+- `TablaEstilizada`: Tablas modernas sin líneas verticales, altura de fila ergonómica (36 px), cabecera estilizada, renderizador de chips/pastillas de colores para estados (`DISPONIBLE`, `PRESTADO`, `ACTIVO`, `DEVUELTO`, `VENCIDO`, `PAGADA`, `PENDIENTE`, `RESERVADO`, `LISTA`, `BAJA`) y mensajes amigables cuando no hay registros.
+- `CampoTexto` y `CampoPassword`: Entradas con esquinas redondeadas, placeholder contextual, validación visual de error con contorno carmesí y botón de visualización conmutable de contraseñas.
+- `DialogoModerno`: Modales personalizados con íconos vectoriales SVG/2D, atajos `Enter`/`Escape` y botones estilizados que sustituyen a los `JOptionPane` planos tradicionales.
+- `Iconos`: Fábrica de íconos vectoriales Java2D con renderizado anti-aliased nítido en cualquier resolución.
+
+### Pantallas Renovadas
+1. **Acceso al Sistema (`LoginView`)**:
+   - Diseño split-screen profesional: panel izquierdo con gradiente institucional índigo, ilustración y resumen de funcionalidades; panel derecho con tarjeta flotante de autenticación.
+   - Visor conmutable de contraseña (ícono de ojo), banner de error no intrusivo y atajo `Enter`.
+   - Diálogo modal con diseño oscuro-claro para cambio forzoso de credenciales temporales.
 2. **Panel de Administración (`AdminView`)**:
-   - Pestaña **Bibliotecarios**: Tabla con estado (Activo/Inactivo) y formulario de alta.
-   - Pestaña **Catálogo**: Explorador maestro-detalle (Libro -> Copias con código de barras y estado).
-   - Pestaña **Configuración**: Formulario de parámetros en tiempo real con confirmación modal.
-   - Pestaña **Reportes**: Visualizador de datos tabulares y selector `JFileChooser` para exportar a Excel.
+   - Navegación lateral con 5 vistas: **Dashboard**, **Bibliotecarios**, **Catálogo**, **Configuración** y **Reportes**.
+   - Dashboard administrativo con 4 tarjetas KPI (Total Libros, Total Ejemplares, Préstamos en Curso, Multas Pendientes).
+   - Gestión integral de bibliotecarios, catálogo maestro-detalle y exportación de reportes a Excel con selector de rutas seguro.
 3. **Panel de Atención de Biblioteca (`BibliotecarioView`)**:
-   - Pestaña **Clientes**: Buscador en vivo, edición y diálogo con contraseña temporal generada.
-   - Pestaña **Préstamos**: Formulario de atención rápida (DNI + Código de barras) con comprobante visual.
-   - Pestaña **Devoluciones**: Cálculo en tiempo real de días de mora, multa en Soles y cobro inmediato.
-   - Pestaña **Reservas**: Cola FIFO de espera con asignación automática al devolver ejemplares.
-   - Pestaña **Multas**: Liquidación y cobro de multas con estado PENDIENTE / PAGADA.
+   - Navegación lateral: **Dashboard Operativo**, **Préstamos**, **Devoluciones**, **Clientes**, **Catálogo**, **Reservas** y **Multas**.
+   - Dashboard con contadores en tiempo real para atención ágil.
+   - Panel de Devoluciones con tarjeta de comprobante detallado, cálculo en vivo de moras y liquidación de sanciones.
 4. **Portal del Lector (`ClienteView`)**:
-   - Pestaña **Catálogo**: Buscador por título/autor y botón dinámico para reservar libros sin stock.
-   - Pestaña **Mis Préstamos**: Tabla con resaltado visual en rojo de préstamos vencidos y botón de renovación.
-   - Pestaña **Mis Reservas**: Seguimiento de estado (`PENDIENTE`, `LISTA`) y cancelación voluntaria.
-   - Pestaña **Mis Multas** y **Seguridad**: Historial de cobros y cambio de contraseña personal.
+   - Navegación lateral: **Mi Panel**, **Explorar Catálogo**, **Mis Préstamos**, **Mis Reservas**, **Mis Multas** y **Seguridad**.
+   - Explorador de catálogo con selector de vista dual: **Cuadrícula de tarjetas de libros** o **Tabla tabular detallada**, con buscador en vivo y filtro por categorías.
+   - Gestión autónoma de reservas y renovaciones de préstamos vigentes con un solo clic.
 
 ---
 
