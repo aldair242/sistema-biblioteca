@@ -70,6 +70,38 @@ public class BibliotecarioController {
         }
     }
 
+    public void eliminarCliente(int id) {
+        int confirm = JOptionPane.showConfirmDialog(view,
+                "¿Está seguro de que desea eliminar permanentemente a este cliente?",
+                "Confirmar Eliminación", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                sf.getClienteService().eliminarCliente(id);
+                view.mostrarMensaje("Cliente eliminado exitosamente del sistema.");
+                view.limpiarFormCliente();
+                cargarClientes();
+            } catch (Exception ex) {
+                ManejadorExcepciones.manejar(view, "eliminación de cliente", ex);
+            }
+        }
+    }
+
+    public void restablecerClaveCliente(int id) {
+        int confirm = JOptionPane.showConfirmDialog(view,
+                "¿Desea restablecer la contraseña de este cliente y generar una nueva clave temporal?",
+                "Restablecer Contraseña", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                Cliente c = sf.getClienteService().buscarPorId(id)
+                        .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
+                String claveTemp = sf.getClienteService().restablecerClaveTemporal(id);
+                view.mostrarModalClaveTemporal(c.getDni(), c.getNombreCompleto(), claveTemp);
+            } catch (Exception ex) {
+                ManejadorExcepciones.manejar(view, "restablecimiento de contraseña", ex);
+            }
+        }
+    }
+
     public void toggleActivoCliente(int clienteId) {
         try {
             Cliente c = sf.getClienteService().buscarPorId(clienteId)
@@ -107,7 +139,7 @@ public class BibliotecarioController {
         view.cargarTablaCatEjemplares(ejemplares);
     }
 
-    public void cambiarEstadoEjemplarDialog(int ejemplarId) {
+    public void cambiarEstadoEjemplarDialog(int ejemplarId, int libroId) {
         EstadoEjemplar[] opciones = {EstadoEjemplar.DISPONIBLE, EstadoEjemplar.EN_MANTENIMIENTO, EstadoEjemplar.BAJA};
         EstadoEjemplar elegido = (EstadoEjemplar) JOptionPane.showInputDialog(
                 view,
@@ -123,8 +155,36 @@ public class BibliotecarioController {
                 sf.getCatalogoService().cambiarEstadoEjemplar(ejemplarId, elegido);
                 view.mostrarMensaje("Estado de ejemplar actualizado.");
                 cargarCatalogo();
+                cargarEjemplaresDeLibro(libroId);
             } catch (Exception ex) {
                 ManejadorExcepciones.manejar(view, "cambio de estado de ejemplar", ex);
+            }
+        }
+    }
+
+    public void agregarEjemplares(int libroId, int cantidad) {
+        try {
+            List<Ejemplar> nuevos = sf.getCatalogoService().agregarMultiplesEjemplares(libroId, cantidad);
+            view.mostrarMensaje("Se agregaron exitosamente " + nuevos.size() + " nuevo(s) ejemplar(es).");
+            cargarCatalogo();
+            cargarEjemplaresDeLibro(libroId);
+        } catch (Exception ex) {
+            ManejadorExcepciones.manejar(view, "registro de nuevos ejemplares", ex);
+        }
+    }
+
+    public void eliminarEjemplar(int ejemplarId, int libroId) {
+        int confirm = JOptionPane.showConfirmDialog(view,
+                "¿Está seguro de eliminar físicamente este ejemplar?",
+                "Confirmar Eliminación", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                sf.getCatalogoService().eliminarEjemplar(ejemplarId);
+                view.mostrarMensaje("Ejemplar eliminado correctamente.");
+                cargarCatalogo();
+                cargarEjemplaresDeLibro(libroId);
+            } catch (Exception ex) {
+                ManejadorExcepciones.manejar(view, "eliminación de ejemplar", ex);
             }
         }
     }
@@ -151,6 +211,23 @@ public class BibliotecarioController {
             cargarCatalogo();
         } catch (Exception ex) {
             ManejadorExcepciones.manejar(view, "registro de préstamo", ex);
+        }
+    }
+
+    public void renovarPrestamo(int prestamoId) {
+        int confirm = JOptionPane.showConfirmDialog(view,
+                "¿Desea renovar el préstamo #" + prestamoId + " para extender el plazo de devolución?",
+                "Confirmar Renovación", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                Prestamo renovado = sf.getPrestamoService().renovarPrestamo(prestamoId);
+                view.mostrarMensaje("<html><b>Préstamo renovado con éxito.</b><br/>" +
+                        "Nueva fecha de vencimiento: <span style='color:blue; font-weight:bold;'>" +
+                        renovado.getFechaVencimiento() + "</span> (Renovación #" + renovado.getRenovaciones() + ")</html>");
+                cargarPrestamos();
+            } catch (Exception ex) {
+                ManejadorExcepciones.manejar(view, "renovación de préstamo", ex);
+            }
         }
     }
 

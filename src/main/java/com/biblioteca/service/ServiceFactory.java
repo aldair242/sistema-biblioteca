@@ -41,7 +41,7 @@ public final class ServiceFactory {
 
         this.authService = new AuthService(usuarioDAO);
         this.configuracionService = new ConfiguracionService(configuracionDAO);
-        this.clienteService = new ClienteService(clienteDAO, usuarioDAO);
+        this.clienteService = new ClienteService(clienteDAO, usuarioDAO, prestamoDAO, multaDAO, reservaDAO);
         this.catalogoService = new CatalogoService(libroDAO, ejemplarDAO, prestamoDAO, reservaDAO);
         this.multaService = new MultaService(multaDAO, configuracionService);
         this.reservaService = new ReservaService(reservaDAO, ejemplarDAO, configuracionService);
