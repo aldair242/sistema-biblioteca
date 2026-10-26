@@ -318,3 +318,4 @@ public final class Iconos {
         void draw(Graphics2D g2, int width, int height);
     }
 }
+

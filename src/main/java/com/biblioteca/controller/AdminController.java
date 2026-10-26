@@ -161,6 +161,25 @@ public class AdminController {
         view.cargarTablaLibros(libros, id -> serviceFactory.getCatalogoService().contarDisponibles(id));
     }
 
+    public void buscarCatalogo(String texto) {
+        if (texto == null || texto.trim().isEmpty()) {
+            cargarCatalogo();
+            return;
+        }
+        String q = texto.trim();
+        List<Libro> libros = serviceFactory.getCatalogoService().buscarLibros(q);
+        if (libros.isEmpty()) {
+            var ejOpt = serviceFactory.getCatalogoService().buscarEjemplarPorCodigo(q);
+            if (ejOpt.isPresent()) {
+                var libOpt = serviceFactory.getCatalogoService().buscarPorId(ejOpt.get().getLibroId());
+                if (libOpt.isPresent()) {
+                    libros = List.of(libOpt.get());
+                }
+            }
+        }
+        view.cargarTablaLibros(libros, id -> serviceFactory.getCatalogoService().contarDisponibles(id));
+    }
+
     public void cargarEjemplaresDeLibro(int libroId) {
         List<Ejemplar> ejemplares = serviceFactory.getCatalogoService().listarEjemplaresPorLibro(libroId);
         view.cargarTablaEjemplares(ejemplares);

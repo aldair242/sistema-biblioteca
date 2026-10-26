@@ -61,6 +61,10 @@ public class BibliotecarioView extends JFrame {
     private DefaultTableModel modeloCatLibros;
     private TablaEstilizada tablaCatEjemplares;
     private DefaultTableModel modeloCatEjemplares;
+    private JLabel lblCatEjTit;
+    private JLabel lblCatEjDetalle;
+    private CampoTexto txtCatEjemplarBuscar;
+    private java.util.List<Ejemplar> catEjemplaresActuales = new java.util.ArrayList<>();
     private BotonSecundario btnCatCambiarEstado;
     private BotonPrimario btnCatAgregarEjemplares;
     private BotonPeligro btnCatEliminarEjemplar;
@@ -106,8 +110,8 @@ public class BibliotecarioView extends JFrame {
     private void initComponents() {
         setTitle("Sistema de Gestión de Biblioteca - Mostrador del Bibliotecario");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1220, 780);
-        setMinimumSize(new Dimension(1100, 700));
+        setSize(1260, 800);
+        setMinimumSize(new Dimension(1120, 720));
         setLocationRelativeTo(null);
         setIconImage(Iconos.crearAppLogoImage(64));
 
@@ -527,18 +531,29 @@ public class BibliotecarioView extends JFrame {
         splitPane.setTopComponent(tarjetaLibros);
 
         TarjetaPanel tarjetaEj = new TarjetaPanel(new BorderLayout(0, 8));
-        JPanel panelHeaderEj = new JPanel(new BorderLayout());
+        JPanel panelHeaderEj = new JPanel(new BorderLayout(10, 0));
         panelHeaderEj.setOpaque(false);
-        JLabel lblEj = new JLabel("Copias Físicas y Control de Estado");
-        lblEj.setFont(Tema.FUENTE_SECCION);
-        panelHeaderEj.add(lblEj, BorderLayout.WEST);
+
+        JPanel panelTitEj = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        panelTitEj.setOpaque(false);
+        lblCatEjTit = new JLabel("Copias Físicas");
+        lblCatEjTit.setFont(Tema.FUENTE_SECCION);
+        lblCatEjTit.setForeground(Tema.COLOR_TEXTO);
+        lblCatEjDetalle = new JLabel("(Seleccione un libro para ver sus ejemplares)");
+        lblCatEjDetalle.setFont(Tema.FUENTE_PEQUENA);
+        lblCatEjDetalle.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
+        panelTitEj.add(lblCatEjTit);
+        panelTitEj.add(lblCatEjDetalle);
+        panelHeaderEj.add(panelTitEj, BorderLayout.WEST);
 
         JPanel panelAccionesEj = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         panelAccionesEj.setOpaque(false);
-        btnCatAgregarEjemplares = new BotonPrimario("+ Agregar Ejemplares", Iconos.crearMas(16, Color.WHITE));
+        txtCatEjemplarBuscar = new CampoTexto("Filtrar copias...", 15);
+        btnCatAgregarEjemplares = new BotonPrimario("Agregar Copias", Iconos.crearMas(16, Color.WHITE));
         btnCatCambiarEstado = new BotonSecundario("Cambiar Estado");
         btnCatEliminarEjemplar = new BotonPeligro("Eliminar Ejemplar");
 
+        panelAccionesEj.add(txtCatEjemplarBuscar);
         panelAccionesEj.add(btnCatAgregarEjemplares);
         panelAccionesEj.add(btnCatCambiarEstado);
         panelAccionesEj.add(btnCatEliminarEjemplar);
@@ -555,13 +570,32 @@ public class BibliotecarioView extends JFrame {
 
         panel.add(splitPane, BorderLayout.CENTER);
 
-        btnBuscar.addActionListener(e -> {
+        Runnable runBuscarCat = () -> {
             if (controller != null) controller.buscarCatalogo(txtCatalogoBuscar.getText());
-        });
+        };
+        btnBuscar.addActionListener(e -> runBuscarCat.run());
+        txtCatalogoBuscar.addActionListener(e -> runBuscarCat.run());
 
         btnTodos.addActionListener(e -> {
             txtCatalogoBuscar.setText("");
             if (controller != null) controller.cargarCatalogo();
+        });
+
+        txtCatalogoBuscar.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { checkVacio(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { checkVacio(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { checkVacio(); }
+            private void checkVacio() {
+                if (txtCatalogoBuscar.getText().trim().isEmpty() && controller != null) {
+                    controller.cargarCatalogo();
+                }
+            }
+        });
+
+        txtCatEjemplarBuscar.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { filtrarCatEjemplares(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { filtrarCatEjemplares(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { filtrarCatEjemplares(); }
         });
 
         tablaCatLibros.getSelectionModel().addListSelectionListener(e -> {
@@ -569,6 +603,10 @@ public class BibliotecarioView extends JFrame {
                 int row = tablaCatLibros.getSelectedRow();
                 if (row >= 0 && controller != null) {
                     catLibroSeleccionadoId = (int) modeloCatLibros.getValueAt(row, 0);
+                    String tit = modeloCatLibros.getValueAt(row, 2).toString();
+                    if (lblCatEjTit != null) {
+                        lblCatEjTit.setText("Ejemplares: " + (tit.length() > 25 ? tit.substring(0, 22) + "..." : tit));
+                    }
                     controller.cargarEjemplaresDeLibro(catLibroSeleccionadoId);
                 }
             }
@@ -746,6 +784,15 @@ public class BibliotecarioView extends JFrame {
                     c.getId(), c.getDni(), c.getNombres(), c.getApellidos(), c.getEmail(), c.getTelefono(), c.getFechaRegistro()
             });
         }
+        if (tablaClientes.getColumnCount() >= 7) {
+            tablaClientes.fijarAnchoColumna(0, 45, 50, 60);    // ID
+            tablaClientes.fijarAnchoColumna(1, 80, 95, 110);   // DNI
+            tablaClientes.fijarAnchoColumna(2, 130, 160, 200); // Nombres
+            tablaClientes.fijarAnchoColumna(3, 130, 160, 200); // Apellidos
+            tablaClientes.fijarAnchoColumna(4, 160, 200, 0);   // Email
+            tablaClientes.fijarAnchoColumna(5, 90, 105, 120);  // Teléfono
+            tablaClientes.fijarAnchoColumna(6, 95, 110, 125);  // Fecha Registro
+        }
     }
 
     public void cargarTablaCatLibros(List<Libro> libros, java.util.function.Function<Integer, Integer> contarDisp) {
@@ -756,14 +803,52 @@ public class BibliotecarioView extends JFrame {
                     l.getId(), l.getIsbn(), l.getTitulo(), l.getAutor(), l.getCategoria(), l.getEditorial(), disp
             });
         }
+        configurarColumnasCatLibros();
+    }
+
+    private void configurarColumnasCatLibros() {
+        if (tablaCatLibros.getColumnCount() >= 7) {
+            tablaCatLibros.fijarAnchoColumna(0, 45, 50, 60);    // ID
+            tablaCatLibros.fijarAnchoColumna(1, 120, 135, 150); // ISBN
+            tablaCatLibros.fijarAnchoColumna(2, 200, 270, 0);   // Título
+            tablaCatLibros.fijarAnchoColumna(3, 140, 170, 220); // Autor
+            tablaCatLibros.fijarAnchoColumna(4, 100, 120, 150); // Categoría
+            tablaCatLibros.fijarAnchoColumna(5, 110, 130, 160); // Editorial
+            tablaCatLibros.fijarAnchoColumna(6, 75, 85, 105);   // Disponibles
+        }
     }
 
     public void cargarTablaCatEjemplares(List<Ejemplar> ejemplares) {
+        this.catEjemplaresActuales = ejemplares != null ? new java.util.ArrayList<>(ejemplares) : new java.util.ArrayList<>();
+        filtrarCatEjemplares();
+    }
+
+    private void filtrarCatEjemplares() {
+        String f = txtCatEjemplarBuscar != null ? txtCatEjemplarBuscar.getText().trim().toLowerCase() : "";
         modeloCatEjemplares.setRowCount(0);
-        for (Ejemplar ej : ejemplares) {
-            modeloCatEjemplares.addRow(new Object[]{
-                    ej.getId(), ej.getCodigoBarras(), ej.getEstado()
-            });
+        int disp = 0;
+        for (Ejemplar ej : catEjemplaresActuales) {
+            if (ej.getEstado() == EstadoEjemplar.DISPONIBLE) disp++;
+            if (f.isEmpty() ||
+                ej.getCodigoBarras().toLowerCase().contains(f) ||
+                ej.getEstado().name().toLowerCase().contains(f) ||
+                String.valueOf(ej.getId()).contains(f)) {
+                modeloCatEjemplares.addRow(new Object[]{
+                        ej.getId(), ej.getCodigoBarras(), ej.getEstado()
+                });
+            }
+        }
+        if (lblCatEjDetalle != null && catLibroSeleccionadoId != null) {
+            lblCatEjDetalle.setText("(" + catEjemplaresActuales.size() + " copias | " + disp + " disponibles)");
+        }
+        configurarColumnasCatEjemplares();
+    }
+
+    private void configurarColumnasCatEjemplares() {
+        if (tablaCatEjemplares.getColumnCount() >= 3) {
+            tablaCatEjemplares.fijarAnchoColumna(0, 60, 80, 100);  // ID Ejemplar
+            tablaCatEjemplares.fijarAnchoColumna(1, 150, 220, 0);  // Código de Barras
+            tablaCatEjemplares.fijarAnchoColumna(2, 120, 150, 180);// Estado Físico
         }
     }
 
@@ -780,6 +865,15 @@ public class BibliotecarioView extends JFrame {
         }
         if (kpiPrestamosActivos != null) kpiPrestamosActivos.setValor(String.valueOf(activos));
         if (kpiPrestamosVencidos != null) kpiPrestamosVencidos.setValor(String.valueOf(vencidos));
+        if (tablaPrestamos.getColumnCount() >= 7) {
+            tablaPrestamos.fijarAnchoColumna(0, 45, 50, 60);   // ID
+            tablaPrestamos.fijarAnchoColumna(1, 75, 85, 100);  // Cliente ID
+            tablaPrestamos.fijarAnchoColumna(2, 75, 85, 100);  // Ejemplar ID
+            tablaPrestamos.fijarAnchoColumna(3, 100, 120, 135);// Fecha Préstamo
+            tablaPrestamos.fijarAnchoColumna(4, 100, 120, 135);// Fecha Vencimiento
+            tablaPrestamos.fijarAnchoColumna(5, 100, 120, 140);// Estado
+            tablaPrestamos.fijarAnchoColumna(6, 80, 95, 110);  // Renovaciones
+        }
     }
 
     public void cargarTablaReservas(List<Reserva> reservas) {
@@ -793,6 +887,15 @@ public class BibliotecarioView extends JFrame {
             if (r.getEstado() == EstadoReserva.PENDIENTE || r.getEstado() == EstadoReserva.LISTA) pendientes++;
         }
         if (kpiReservasEnEspera != null) kpiReservasEnEspera.setValor(String.valueOf(pendientes));
+        if (tablaReservas.getColumnCount() >= 7) {
+            tablaReservas.fijarAnchoColumna(0, 45, 50, 60);   // ID
+            tablaReservas.fijarAnchoColumna(1, 75, 85, 100);  // Cliente ID
+            tablaReservas.fijarAnchoColumna(2, 75, 85, 100);  // Libro ID
+            tablaReservas.fijarAnchoColumna(3, 75, 85, 100);  // Ejemplar ID
+            tablaReservas.fijarAnchoColumna(4, 100, 120, 135);// Fecha Reserva
+            tablaReservas.fijarAnchoColumna(5, 100, 120, 135);// Fecha Expiración
+            tablaReservas.fijarAnchoColumna(6, 100, 120, 140);// Estado
+        }
     }
 
     public void cargarTablaMultas(List<Multa> multas) {
@@ -808,6 +911,15 @@ public class BibliotecarioView extends JFrame {
             }
         }
         if (kpiMultasPendientes != null) kpiMultasPendientes.setValor("S/ " + totalPendiente.toPlainString());
+        if (tablaMultas.getColumnCount() >= 7) {
+            tablaMultas.fijarAnchoColumna(0, 45, 50, 60);   // ID
+            tablaMultas.fijarAnchoColumna(1, 75, 85, 100);  // Préstamo ID
+            tablaMultas.fijarAnchoColumna(2, 80, 95, 110);  // Días Retraso
+            tablaMultas.fijarAnchoColumna(3, 90, 110, 130); // Tarifa
+            tablaMultas.fijarAnchoColumna(4, 90, 110, 130); // Monto
+            tablaMultas.fijarAnchoColumna(5, 100, 120, 140);// Estado
+            tablaMultas.fijarAnchoColumna(6, 100, 120, 140);// Fecha Pago
+        }
     }
 
     public void mostrarResultadoDevolucion(PrestamoService.ResultadoDevolucion resultado) {

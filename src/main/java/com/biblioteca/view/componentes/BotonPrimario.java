@@ -18,3 +18,4 @@ public class BotonPrimario extends BotonEstilizado {
         setIcon(icono);
     }
 }
+

@@ -18,3 +18,4 @@ public class BotonPeligro extends BotonEstilizado {
         setIcon(icono);
     }
 }
+

@@ -70,3 +70,4 @@ public class TarjetaMetrica extends TarjetaPanel {
         this.lblTitulo.setText(titulo.toUpperCase());
     }
 }
+

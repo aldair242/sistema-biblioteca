@@ -26,6 +26,7 @@ public class App {
             logger.error("Excepción global no controlada en el hilo '{}': {}", thread.getName(), throwable.getMessage(), throwable);
         });
 
+        
         // Configuración del tema visual y sistema de diseño global
         Tema.aplicar();
 

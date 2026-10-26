@@ -104,3 +104,4 @@ public class CampoPassword extends JPanel {
         repaint();
     }
 }
+
