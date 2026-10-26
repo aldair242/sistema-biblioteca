@@ -7,6 +7,7 @@ import com.biblioteca.model.Prestamo;
 import com.biblioteca.model.Reserva;
 import com.biblioteca.security.SesionActual;
 import com.biblioteca.service.ServiceFactory;
+import com.biblioteca.util.ManejadorExcepciones;
 import com.biblioteca.view.ClienteView;
 
 import java.util.List;
@@ -67,7 +68,7 @@ public class ClienteController {
             cargarCatalogo();
             cargarReservas();
         } catch (Exception ex) {
-            view.mostrarError(ex.getMessage());
+            ManejadorExcepciones.manejar(view, "solicitud de reserva", ex);
         }
     }
 
@@ -84,7 +85,7 @@ public class ClienteController {
             view.mostrarMensaje("Préstamo renovado exitosamente por un periodo adicional.");
             cargarPrestamos();
         } catch (Exception ex) {
-            view.mostrarError(ex.getMessage());
+            ManejadorExcepciones.manejar(view, "renovación de préstamo", ex);
         }
     }
 
@@ -102,7 +103,7 @@ public class ClienteController {
             cargarReservas();
             cargarCatalogo();
         } catch (Exception ex) {
-            view.mostrarError(ex.getMessage());
+            ManejadorExcepciones.manejar(view, "cancelación de reserva", ex);
         }
     }
 
@@ -130,7 +131,7 @@ public class ClienteController {
             view.mostrarMensaje("Su contraseña ha sido actualizada con éxito.");
             view.limpiarFormSeguridad();
         } catch (Exception ex) {
-            view.mostrarError(ex.getMessage());
+            ManejadorExcepciones.manejar(view, "cambio de contraseña", ex);
         }
     }
 
@@ -138,4 +139,3 @@ public class ClienteController {
         authController.cerrarSesion(view);
     }
 }
-

@@ -5,6 +5,7 @@ import com.biblioteca.model.Rol;
 import com.biblioteca.model.Usuario;
 import com.biblioteca.service.AuthService;
 import com.biblioteca.service.ServiceFactory;
+import com.biblioteca.util.ManejadorExcepciones;
 import com.biblioteca.view.*;
 
 import javax.swing.JFrame;
@@ -51,7 +52,7 @@ public class AuthController {
             loginView.mostrarError(ex.getMessage());
             loginView.limpiarClave();
         } catch (Exception ex) {
-            loginView.mostrarError("Ocurrió un error inesperado al procesar el ingreso: " + ex.getMessage());
+            ManejadorExcepciones.manejar(loginView, "autenticación de usuario", ex);
             loginView.limpiarClave();
         }
     }
