@@ -246,4 +246,36 @@ class ServiciosNegocioTest {
 
         assertTrue(ex.getMessage().contains("ya está asignado a otro cliente"));
     }
+
+    @Test
+    @DisplayName("Caso 11: Registrar préstamo con selección de días personalizados (1, 3 o 7 días)")
+    void testRegistrarPrestamoConDiasPersonalizados() {
+        SesionActual.iniciarSesion(new Usuario(2, "biblio", "hash", Rol.BIBLIOTECARIO, "Bibliotecario", true, false, 0, null));
+
+        String dni = "77889900";
+        Cliente cliente = new Cliente(30, 300, dni, "Laura", "Vega", "laura@mail.com", "911223344", LocalDate.now());
+        when(clienteDAO.buscarPorDni(dni)).thenReturn(Optional.of(cliente));
+        when(multaDAO.listarPendientesPorCliente(30)).thenReturn(Collections.emptyList());
+        when(prestamoDAO.listarActivosPorCliente(30)).thenReturn(Collections.emptyList());
+        when(configuracionDAO.obtener("MAX_PRESTAMOS")).thenReturn(Optional.of("3"));
+
+        Ejemplar ejemplar = new Ejemplar(15, 3, "L0003-001", EstadoEjemplar.DISPONIBLE);
+        when(ejemplarDAO.buscarPorCodigoBarras("L0003-001")).thenReturn(Optional.of(ejemplar));
+
+        LocalDate hoy = LocalDate.now();
+        when(prestamoDAO.guardar(any(Prestamo.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Probar con 3 días (Fin de semana / alta demanda)
+        Prestamo p3 = prestamoService.registrarPrestamo(dni, "L0003-001", 3);
+        assertNotNull(p3);
+        assertEquals(hoy.plusDays(3), p3.getFechaVencimiento(), "El préstamo debe vencer exactamente en 3 días");
+
+        // Probar con 1 día (Express / alta demanda)
+        Prestamo p1 = prestamoService.registrarPrestamo(dni, "L0003-001", 1);
+        assertEquals(hoy.plusDays(1), p1.getFechaVencimiento(), "El préstamo express debe vencer exactamente en 1 día");
+
+        // Probar con 7 días (Estándar)
+        Prestamo p7 = prestamoService.registrarPrestamo(dni, "L0003-001", 7);
+        assertEquals(hoy.plusDays(7), p7.getFechaVencimiento(), "El préstamo estándar debe vencer exactamente en 7 días");
+    }
 }

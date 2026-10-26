@@ -56,6 +56,18 @@ public class PrestamoService {
      * @return Préstamo creado y persistido
      */
     public Prestamo registrarPrestamo(String dniCliente, String codigoBarras) {
+        return registrarPrestamo(dniCliente, codigoBarras, null);
+    }
+
+    /**
+     * Registra un nuevo préstamo permitiendo seleccionar los días de duración (1, 3, 7 días o política).
+     *
+     * @param dniCliente DNI del cliente
+     * @param codigoBarras Código de barras del ejemplar
+     * @param diasPrestamoPersonalizado Días de préstamo opcionales (1, 3, 7, 14 o null para valor por defecto)
+     * @return Préstamo creado y persistido
+     */
+    public Prestamo registrarPrestamo(String dniCliente, String codigoBarras, Integer diasPrestamoPersonalizado) {
         Autorizador.requerir(Rol.ADMIN, Rol.BIBLIOTECARIO);
 
         if (dniCliente == null || dniCliente.trim().isEmpty() || codigoBarras == null || codigoBarras.trim().isEmpty()) {
@@ -108,7 +120,9 @@ public class PrestamoService {
             throw new ValidacionException("El ejemplar no se encuentra disponible para préstamo (estado: " + ejemplar.getEstado() + ").");
         }
 
-        int diasPrestamo = configuracionService.obtenerDiasPrestamo();
+        int diasPrestamo = (diasPrestamoPersonalizado != null && diasPrestamoPersonalizado > 0)
+                ? diasPrestamoPersonalizado
+                : configuracionService.obtenerDiasPrestamo();
         LocalDate fechaVencimiento = hoy.plusDays(diasPrestamo);
 
         int bibliotecarioId = SesionActual.estaAutenticado() ? SesionActual.getUsuario().getId() : 1;

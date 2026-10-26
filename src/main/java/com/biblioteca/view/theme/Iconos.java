@@ -252,6 +252,21 @@ public final class Iconos {
         });
     }
 
+    public static Icon crearAlerta(int size, Color color) {
+        return new VectorIcon(size, size, (g2, w, h) -> {
+            g2.setColor(color);
+            g2.setStroke(new BasicStroke(Math.max(1.5f, size / 10f), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            Path2D.Float t = new Path2D.Float();
+            t.moveTo(size * 0.50f, size * 0.12f);
+            t.lineTo(size * 0.88f, size * 0.85f);
+            t.lineTo(size * 0.12f, size * 0.85f);
+            t.closePath();
+            g2.draw(t);
+            g2.drawLine((int)(size * 0.50f), (int)(size * 0.38f), (int)(size * 0.50f), (int)(size * 0.58f));
+            g2.fillOval((int)(size * 0.46f), (int)(size * 0.68f), (int)Math.max(2, size * 0.08f), (int)Math.max(2, size * 0.08f));
+        });
+    }
+
     public static Icon crearActualizar(int size, Color color) {
         return new VectorIcon(size, size, (g2, w, h) -> {
             g2.setColor(color);

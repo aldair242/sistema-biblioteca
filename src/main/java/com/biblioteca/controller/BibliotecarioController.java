@@ -4,7 +4,9 @@ import com.biblioteca.model.*;
 import com.biblioteca.service.*;
 import com.biblioteca.util.ManejadorExcepciones;
 import com.biblioteca.view.BibliotecarioView;
+import com.biblioteca.view.DialogoTicketPrestamo;
 
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import java.util.List;
 
@@ -30,6 +32,7 @@ public class BibliotecarioController {
         cargarPrestamos();
         cargarReservas();
         cargarMultas(true);
+        view.setExtendedState(JFrame.MAXIMIZED_BOTH);
         view.setVisible(true);
     }
 
@@ -216,14 +219,19 @@ public class BibliotecarioController {
     }
 
     public void registrarPrestamo(String dni, String codigoBarras) {
+        registrarPrestamo(dni, codigoBarras, null);
+    }
+
+    public void registrarPrestamo(String dni, String codigoBarras, Integer diasPersonalizados) {
         try {
-            Prestamo p = sf.getPrestamoService().registrarPrestamo(dni, codigoBarras);
-            String comprobante = "<h3>Préstamo Registrado con Éxito</h3>" +
-                    "<b>ID Préstamo:</b> " + p.getId() + "<br/>" +
-                    "<b>Fecha de Préstamo:</b> " + p.getFechaPrestamo() + "<br/>" +
-                    "<b>Fecha de Vencimiento:</b> <span style='color:#C62828; font-weight:bold;'>" + p.getFechaVencimiento() + "</span><br/>" +
-                    "<p><i>El cliente debe devolver el ejemplar a más tardar en la fecha indicada para evitar multas.</i></p>";
-            view.mostrarMensaje(comprobante);
+            Prestamo p = sf.getPrestamoService().registrarPrestamo(dni, codigoBarras, diasPersonalizados);
+
+            // Generar comprobante digital y modelo de notificación
+            TicketPrestamo ticket = sf.getNotificacionService().generarTicket(p);
+
+            // Mostrar el diálogo interactivo de ticket de préstamo con opciones push y correo
+            DialogoTicketPrestamo dialogo = new DialogoTicketPrestamo(view, ticket, sf.getNotificacionService());
+            dialogo.setVisible(true);
 
             cargarPrestamos();
             cargarCatalogo();

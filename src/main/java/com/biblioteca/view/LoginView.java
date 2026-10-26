@@ -12,13 +12,15 @@ import java.awt.event.KeyEvent;
 
 /**
  * Ventana de inicio de sesión rediseñada con pantalla dividida (Split Screen),
- * panel de marca corporativo, tarjeta flotante de acceso y mensajes de error en línea.
+ * panel de marca corporativo, tarjeta flotante de acceso y mensajes de error en línea estables.
  */
 public class LoginView extends JFrame {
 
     private CampoTexto txtUsuario;
     private CampoPassword txtPassword;
     private BotonPrimario btnIngresar;
+    private CardLayout cardErrorLayout;
+    private JPanel panelContenedorError;
     private JPanel panelErrorBanner;
     private JLabel lblMensajeError;
     private AuthController controller;
@@ -140,64 +142,104 @@ public class LoginView extends JFrame {
         JPanel panelContenedor = new JPanel(new GridBagLayout());
         panelContenedor.setBackground(Tema.COLOR_FONDO);
 
-        // Tarjeta centralizada
-        TarjetaPanel tarjeta = new TarjetaPanel();
-        tarjeta.setLayout(new BoxLayout(tarjeta, BoxLayout.Y_AXIS));
-        tarjeta.setPreferredSize(new Dimension(400, 460));
-        tarjeta.setMaximumSize(new Dimension(420, 480));
-        tarjeta.setBorder(BorderFactory.createEmptyBorder(30, 32, 30, 32));
+        // Tarjeta centralizada con GridBagLayout para máxima estabilidad visual
+        TarjetaPanel tarjeta = new TarjetaPanel(new GridBagLayout());
+        tarjeta.setPreferredSize(new Dimension(420, 520));
+        tarjeta.setMinimumSize(new Dimension(380, 490));
+        tarjeta.setBorder(BorderFactory.createEmptyBorder(32, 36, 32, 36));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
 
         // Título de la tarjeta
         JLabel lblBienvenido = new JLabel("Iniciar Sesión");
         lblBienvenido.setFont(Tema.FUENTE_TITULO);
         lblBienvenido.setForeground(Tema.COLOR_TEXTO);
-        lblBienvenido.setAlignmentX(Component.LEFT_ALIGNMENT);
+        gbc.gridy = 0;
+        gbc.insets = new Insets(0, 0, 4, 0);
+        tarjeta.add(lblBienvenido, gbc);
 
         JLabel lblInstruccion = new JLabel("Ingrese sus credenciales de usuario o DNI");
         lblInstruccion.setFont(Tema.FUENTE_PEQUENA);
         lblInstruccion.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
-        lblInstruccion.setAlignmentX(Component.LEFT_ALIGNMENT);
+        gbc.gridy = 1;
+        gbc.insets = new Insets(0, 0, 10, 0);
+        tarjeta.add(lblInstruccion, gbc);
 
-        // Banner de error en línea (inicialmente oculto)
+        // Contenedor de Error con CardLayout y ALTURA FIJA RESERVADA (42px)
+        // Esto garantiza que los campos JAMÁS se muevan ni un píxel al mostrar o limpiar errores
+        cardErrorLayout = new CardLayout();
+        panelContenedorError = new JPanel(cardErrorLayout);
+        panelContenedorError.setOpaque(false);
+        panelContenedorError.setPreferredSize(new Dimension(340, 42));
+        panelContenedorError.setMinimumSize(new Dimension(300, 42));
+        panelContenedorError.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+
+        // Estado normal sin error: panel transparente de altura fija
+        JPanel panelVacio = new JPanel();
+        panelVacio.setOpaque(false);
+        panelContenedorError.add(panelVacio, "VACIO");
+
+        // Banner de error en línea estilizado
         panelErrorBanner = new JPanel(new BorderLayout(8, 0));
         panelErrorBanner.setBackground(Tema.COLOR_PELIGRO_CLARO);
         panelErrorBanner.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Tema.COLOR_PELIGRO, 1, true),
-                BorderFactory.createEmptyBorder(8, 12, 8, 12)
+                BorderFactory.createEmptyBorder(6, 12, 6, 12)
         ));
-        panelErrorBanner.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-        panelErrorBanner.setVisible(false);
+
+        JLabel lblIconoError = new JLabel(Iconos.crearAlerta(18, Tema.COLOR_PELIGRO));
+        panelErrorBanner.add(lblIconoError, BorderLayout.WEST);
 
         lblMensajeError = new JLabel("Credenciales inválidas");
         lblMensajeError.setFont(Tema.FUENTE_PEQUENA_BOLD);
         lblMensajeError.setForeground(Tema.COLOR_PELIGRO);
         panelErrorBanner.add(lblMensajeError, BorderLayout.CENTER);
 
+        panelContenedorError.add(panelErrorBanner, "ERROR");
+        cardErrorLayout.show(panelContenedorError, "VACIO");
+
+        gbc.gridy = 2;
+        gbc.insets = new Insets(0, 0, 10, 0);
+        tarjeta.add(panelContenedorError, gbc);
+
         // Campo Usuario
         JLabel lblUser = new JLabel("Usuario o DNI:");
         lblUser.setFont(Tema.FUENTE_SECCION);
         lblUser.setForeground(Tema.COLOR_TEXTO);
-        lblUser.setAlignmentX(Component.LEFT_ALIGNMENT);
+        gbc.gridy = 3;
+        gbc.insets = new Insets(0, 0, 6, 0);
+        tarjeta.add(lblUser, gbc);
 
         txtUsuario = new CampoTexto("Ej. admin, biblio o DNI del cliente");
-        txtUsuario.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-        txtUsuario.setAlignmentX(Component.LEFT_ALIGNMENT);
+        txtUsuario.setPreferredSize(new Dimension(340, 40));
+        gbc.gridy = 4;
+        gbc.insets = new Insets(0, 0, 14, 0);
+        tarjeta.add(txtUsuario, gbc);
 
         // Campo Contraseña
         JLabel lblPass = new JLabel("Contraseña:");
         lblPass.setFont(Tema.FUENTE_SECCION);
         lblPass.setForeground(Tema.COLOR_TEXTO);
-        lblPass.setAlignmentX(Component.LEFT_ALIGNMENT);
+        gbc.gridy = 5;
+        gbc.insets = new Insets(0, 0, 6, 0);
+        tarjeta.add(lblPass, gbc);
 
         txtPassword = new CampoPassword("Contraseña");
-        txtPassword.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-        txtPassword.setAlignmentX(Component.LEFT_ALIGNMENT);
+        txtPassword.setPreferredSize(new Dimension(340, 40));
+        gbc.gridy = 6;
+        gbc.insets = new Insets(0, 0, 24, 0);
+        tarjeta.add(txtPassword, gbc);
 
         // Botón Ingresar
         btnIngresar = new BotonPrimario("Ingresar al Sistema", Iconos.crearCheck(18, Color.WHITE));
         btnIngresar.setFont(new Font(Tema.NOMBRE_FUENTE, Font.BOLD, 15));
-        btnIngresar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-        btnIngresar.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btnIngresar.setPreferredSize(new Dimension(340, 44));
+        gbc.gridy = 7;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        tarjeta.add(btnIngresar, gbc);
 
         btnIngresar.addActionListener(e -> {
             limpiarBannerError();
@@ -206,22 +248,11 @@ public class LoginView extends JFrame {
             }
         });
 
-        // Ensamblado en la tarjeta
-        tarjeta.add(lblBienvenido);
-        tarjeta.add(Box.createVerticalStrut(4));
-        tarjeta.add(lblInstruccion);
-        tarjeta.add(Box.createVerticalStrut(15));
-        tarjeta.add(panelErrorBanner);
-        tarjeta.add(Box.createVerticalStrut(12));
-        tarjeta.add(lblUser);
-        tarjeta.add(Box.createVerticalStrut(6));
-        tarjeta.add(txtUsuario);
-        tarjeta.add(Box.createVerticalStrut(14));
-        tarjeta.add(lblPass);
-        tarjeta.add(Box.createVerticalStrut(6));
-        tarjeta.add(txtPassword);
-        tarjeta.add(Box.createVerticalStrut(24));
-        tarjeta.add(btnIngresar);
+        // Espaciador inferior
+        gbc.gridy = 8;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        tarjeta.add(Box.createGlue(), gbc);
 
         panelContenedor.add(tarjeta);
         return panelContenedor;
@@ -229,19 +260,25 @@ public class LoginView extends JFrame {
 
     public void mostrarError(String mensaje) {
         lblMensajeError.setText(mensaje);
-        panelErrorBanner.setVisible(true);
+        if (cardErrorLayout != null && panelContenedorError != null) {
+            cardErrorLayout.show(panelContenedorError, "ERROR");
+        }
         txtUsuario.mostrarError();
         txtPassword.mostrarError();
-        revalidate();
-        repaint();
+        panelContenedorError.revalidate();
+        panelContenedorError.repaint();
     }
 
     public void limpiarBannerError() {
-        panelErrorBanner.setVisible(false);
+        if (cardErrorLayout != null && panelContenedorError != null) {
+            cardErrorLayout.show(panelContenedorError, "VACIO");
+        }
         txtUsuario.limpiarError();
         txtPassword.limpiarError();
-        revalidate();
-        repaint();
+        if (panelContenedorError != null) {
+            panelContenedorError.revalidate();
+            panelContenedorError.repaint();
+        }
     }
 
     public void mostrarMensaje(String mensaje) {
