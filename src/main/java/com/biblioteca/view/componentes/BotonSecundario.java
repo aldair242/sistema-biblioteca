@@ -18,3 +18,4 @@ public class BotonSecundario extends BotonEstilizado {
         setIcon(icono);
     }
 }
+

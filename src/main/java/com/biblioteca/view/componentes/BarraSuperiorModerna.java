@@ -128,3 +128,4 @@ public class BarraSuperiorModerna extends JPanel {
         return nombre.substring(0, Math.min(2, nombre.length())).toUpperCase();
     }
 }
+
