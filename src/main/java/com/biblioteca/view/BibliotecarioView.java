@@ -72,6 +72,7 @@ public class BibliotecarioView extends JFrame {
     // Pestaña Préstamos
     private CampoTexto txtPrestamoDni;
     private CampoTexto txtPrestamoCodigoBarras;
+    private JComboBox<String> comboDiasPrestamo;
     private BotonPrimario btnPrestamoRegistrar;
     private BotonAcento btnPrestamoRenovar;
     private TablaEstilizada tablaPrestamos;
@@ -113,6 +114,7 @@ public class BibliotecarioView extends JFrame {
         setSize(1260, 800);
         setMinimumSize(new Dimension(1120, 720));
         setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setIconImage(Iconos.crearAppLogoImage(64));
 
         JPanel panelRaiz = new JPanel(new BorderLayout());
@@ -401,6 +403,18 @@ public class BibliotecarioView extends JFrame {
         txtPrestamoCodigoBarras = new CampoTexto("Ej. L0001-001", 15);
         tarjetaForm.add(txtPrestamoCodigoBarras);
 
+        tarjetaForm.add(new JLabel("Plazo de Devolución:"));
+        comboDiasPrestamo = new JComboBox<>(new String[]{
+                "1 día (Alta demanda / Express)",
+                "3 días (Fin de semana / Reserva)",
+                "7 días (Estándar recomendado)",
+                "14 días (Investigación)",
+                "Por defecto del sistema"
+        });
+        comboDiasPrestamo.setFont(Tema.FUENTE_NORMAL);
+        comboDiasPrestamo.setSelectedIndex(2); // 7 días por defecto
+        tarjetaForm.add(comboDiasPrestamo);
+
         btnPrestamoRegistrar = new BotonPrimario("Emitir Préstamo", Iconos.crearPrestamo(16, Color.WHITE));
         tarjetaForm.add(btnPrestamoRegistrar);
         panel.add(tarjetaForm, BorderLayout.NORTH);
@@ -429,7 +443,11 @@ public class BibliotecarioView extends JFrame {
 
         btnPrestamoRegistrar.addActionListener(e -> {
             if (controller != null) {
-                controller.registrarPrestamo(txtPrestamoDni.getText(), txtPrestamoCodigoBarras.getText());
+                controller.registrarPrestamo(
+                        txtPrestamoDni.getText(),
+                        txtPrestamoCodigoBarras.getText(),
+                        getDiasPrestamoSeleccionados()
+                );
             }
         });
 
@@ -975,6 +993,24 @@ public class BibliotecarioView extends JFrame {
         tablaClientes.clearSelection();
         lblClienteModo.setText("Modo: Nuevo Lector (Seleccione una fila para editar o eliminar)");
         lblClienteModo.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
+    }
+
+    public Integer getDiasPrestamoSeleccionados() {
+        if (comboDiasPrestamo == null) return null;
+        int idx = comboDiasPrestamo.getSelectedIndex();
+        return switch (idx) {
+            case 0 -> 1;
+            case 1 -> 3;
+            case 2 -> 7;
+            case 3 -> 14;
+            default -> null;
+        };
+    }
+
+    public void limpiarCamposPrestamo() {
+        if (txtPrestamoDni != null) txtPrestamoDni.setText("");
+        if (txtPrestamoCodigoBarras != null) txtPrestamoCodigoBarras.setText("");
+        if (comboDiasPrestamo != null) comboDiasPrestamo.setSelectedIndex(2);
     }
 
     public void mostrarMensaje(String msj) {

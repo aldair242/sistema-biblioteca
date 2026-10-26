@@ -100,6 +100,9 @@ public class AdminView extends JFrame {
     private TablaEstilizada tablaReporte;
     private DefaultTableModel modeloReporte;
     private BotonAcento btnExportarExcel;
+    private PanelGraficaReporte panelGraficaReporte;
+    private PanelGraficaReporte panelGraficaReporteSplit;
+    private TablaEstilizada tablaReporteSplit;
 
     public AdminView() {
         Tema.aplicar();
@@ -116,6 +119,7 @@ public class AdminView extends JFrame {
         setSize(1240, 800);
         setMinimumSize(new Dimension(1120, 720));
         setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setIconImage(Iconos.crearAppLogoImage(64));
 
         JPanel panelRaiz = new JPanel(new BorderLayout());
@@ -843,13 +847,42 @@ public class AdminView extends JFrame {
         tarjetaFiltro.add(btnExportarExcel, BorderLayout.EAST);
         panel.add(tarjetaFiltro, BorderLayout.NORTH);
 
-        // Tabla de Reportes
-        TarjetaPanel tarjetaTabla = new TarjetaPanel(new BorderLayout(0, 10));
+        // Contenedor principal con pestañas: Gráficas Estadísticas / Tabla Detallada / Vista Dividida
+        TarjetaPanel tarjetaContenido = new TarjetaPanel(new BorderLayout(0, 10));
+
+        JTabbedPane tabsReportes = new JTabbedPane();
+        tabsReportes.setFont(Tema.FUENTE_SECCION);
+
+        // Tab 0: Gráfica Estadística interactiva
+        panelGraficaReporte = new PanelGraficaReporte();
+        tabsReportes.addTab("📊 Visualización Gráfica", panelGraficaReporte);
+
+        // Tab 1: Tabla de Datos Tabulares
         modeloReporte = new DefaultTableModel();
         tablaReporte = new TablaEstilizada(modeloReporte);
         tablaReporte.setMensajeVacio("Presione 'Actualizar Datos' para generar la consulta de reporte.");
-        tarjetaTabla.add(new JScrollPane(tablaReporte), BorderLayout.CENTER);
-        panel.add(tarjetaTabla, BorderLayout.CENTER);
+        JPanel panelTablaContenedor = new JPanel(new BorderLayout());
+        panelTablaContenedor.setOpaque(false);
+        panelTablaContenedor.add(new JScrollPane(tablaReporte), BorderLayout.CENTER);
+        tabsReportes.addTab("📋 Tabla Detallada", panelTablaContenedor);
+
+        // Tab 2: Vista Dividida (Gráfica + Tabla)
+        JSplitPane splitReportes = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        splitReportes.setOpaque(false);
+        splitReportes.setBorder(null);
+        splitReportes.setResizeWeight(0.5);
+        splitReportes.setDividerSize(6);
+
+        panelGraficaReporteSplit = new PanelGraficaReporte();
+        splitReportes.setLeftComponent(panelGraficaReporteSplit);
+
+        tablaReporteSplit = new TablaEstilizada(modeloReporte);
+        splitReportes.setRightComponent(new JScrollPane(tablaReporteSplit));
+
+        tabsReportes.addTab("📑 Vista Dividida (Ambas)", splitReportes);
+
+        tarjetaContenido.add(tabsReportes, BorderLayout.CENTER);
+        panel.add(tarjetaContenido, BorderLayout.CENTER);
 
         btnCargar.addActionListener(e -> {
             if (controller != null) controller.cargarReporte(comboTipoReporte.getSelectedIndex());
@@ -959,8 +992,20 @@ public class AdminView extends JFrame {
     }
 
     public void setReporteModel(DefaultTableModel model) {
-        tablaReporte.setModel(model);
         this.modeloReporte = model;
+        if (tablaReporte != null) {
+            tablaReporte.setModel(model);
+        }
+        if (tablaReporteSplit != null) {
+            tablaReporteSplit.setModel(model);
+        }
+        int tipo = comboTipoReporte != null ? comboTipoReporte.getSelectedIndex() : 0;
+        if (panelGraficaReporte != null) {
+            panelGraficaReporte.actualizarDesdeModelo(tipo, model);
+        }
+        if (panelGraficaReporteSplit != null) {
+            panelGraficaReporteSplit.actualizarDesdeModelo(tipo, model);
+        }
     }
 
     public void limpiarFormBibliotecario() {

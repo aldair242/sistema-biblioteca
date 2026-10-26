@@ -90,6 +90,7 @@ public class ClienteView extends JFrame {
         setSize(1200, 780);
         setMinimumSize(new Dimension(1100, 700));
         setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setIconImage(Iconos.crearAppLogoImage(64));
 
         JPanel panelRaiz = new JPanel(new BorderLayout());

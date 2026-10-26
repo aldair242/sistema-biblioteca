@@ -35,6 +35,7 @@ public class AdminController {
         cargarCatalogo();
         cargarConfiguracion();
         cargarReporte(0);
+        view.setExtendedState(JFrame.MAXIMIZED_BOTH);
         view.setVisible(true);
     }
 
