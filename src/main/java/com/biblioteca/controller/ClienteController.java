@@ -10,6 +10,7 @@ import com.biblioteca.service.ServiceFactory;
 import com.biblioteca.util.ManejadorExcepciones;
 import com.biblioteca.view.ClienteView;
 
+import javax.swing.JFrame;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,6 +43,7 @@ public class ClienteController {
         cargarPrestamos();
         cargarReservas();
         cargarMultas();
+        view.setExtendedState(JFrame.MAXIMIZED_BOTH);
         view.setVisible(true);
     }
 
