@@ -1,6 +1,6 @@
 # Matriz de Casos de Prueba y Cobertura (TDD)
 
-El proyecto cuenta con una batería integral de **45 pruebas unitarias y de integración** desarrolladas bajo el estándar **JUnit 5** y **Mockito**, garantizando la cobertura funcional de las reglas de negocio, la seguridad criptográfica, la persistencia JDBC y la generación de reportes con Apache POI.
+El proyecto cuenta con una batería integral de **46 pruebas unitarias y de integración** desarrolladas bajo el estándar **JUnit 5** y **Mockito**, garantizando la cobertura funcional de las reglas de negocio, la seguridad criptográfica, la persistencia JDBC y la generación de reportes con Apache POI.
 
 ---
 
@@ -27,7 +27,8 @@ El proyecto cuenta con una batería integral de **45 pruebas unitarias y de inte
 | **Servicios de Negocio**| `ServiciosNegocioTest`| 7 | Aprobada | Reglas TDD obligatorias |
 | **Reportes y POI** | `ExcelExporterTest` | 2 | Aprobada | Formatos POI y totales |
 | **Reportes y Negocio** | `ReporteServiceTest` | 4 | Aprobada | Generación de 4 reportes |
-| **TOTAL** | **20 Clases de Prueba** | **45** | **100% OK** | **0 Fallos, 0 Errores** |
+| **Integración Docente**| `FlujoCompletoDocenteTest`| 1 | Aprobada | Flujo completo de negocio |
+| **TOTAL** | **21 Clases de Prueba** | **46** | **100% OK** | **0 Fallos, 0 Errores** |
 
 ---
 

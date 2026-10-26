@@ -85,7 +85,7 @@ Consulte la carpeta [`docs/`](file:///c:/Users/jerem/OneDrive/Desktop/BIBLIOTECA
 - [**Modelo de Datos**](file:///c:/Users/jerem/OneDrive/Desktop/BIBLIOTECA%20CI/docs/modelo-datos.md): Diagrama Entidad-Relación Mermaid, tablas, llaves e integridad referencial.
 - [**Reglas de Negocio**](file:///c:/Users/jerem/OneDrive/Desktop/BIBLIOTECA%20CI/docs/reglas-negocio.md): Fórmulas de cálculo de multas, validaciones de préstamo y cola de reservas FIFO.
 - [**Manual de Usuario**](file:///c:/Users/jerem/OneDrive/Desktop/BIBLIOTECA%20CI/docs/manual-usuario.md): Guía operativa detallada paso a paso para cada uno de los 3 roles.
-- [**Casos de Prueba (TDD)**](file:///c:/Users/jerem/OneDrive/Desktop/BIBLIOTECA%20CI/docs/casos-de-prueba.md): Resumen de las 45 pruebas JUnit 5 + Mockito y pruebas con rollback.
+- [**Casos de Prueba (TDD)**](file:///c:/Users/jerem/OneDrive/Desktop/BIBLIOTECA%20CI/docs/casos-de-prueba.md): Resumen de las 46 pruebas JUnit 5 + Mockito y pruebas con rollback.
 
 ---
 
@@ -95,6 +95,33 @@ Consulte la carpeta [`docs/`](file:///c:/Users/jerem/OneDrive/Desktop/BIBLIOTECA
 2. **Apache POI (`5.2.5`)**: Creación de libros Excel `.xlsx` estilizados con bordes, cabeceras con color institucional, formato de moneda peruana (`S/ #,##0.00`), fechas y totales generales.
 3. **Apache Commons (`Lang3:3.14.0`, `IO:2.16.1`)**: Validación de cadenas con `StringUtils` y `Validate`; normalización y comprobación segura de rutas de archivos con `FilenameUtils`.
 4. **Logback Classic (`1.5.6`)**: Sistema de logging estructurado con appenders en consola y archivo rotativo diario (`logs/biblioteca.log`), asegurando total confidencialidad de contraseñas.
+
+---
+
+## 🖥️ Diseño Visual e Interfaces (Java Swing + FlatLaf)
+
+El sistema presenta una interfaz gráfica moderna, con tipografía clara, márgenes consistentes y una paleta sobria basada en **FlatLaf Light**:
+
+1. **Pantalla de Inicio de Sesión (`LoginView`)**:
+   - Tarjeta centralizada con campos de usuario y contraseña.
+   - Control visual de intentos fallidos y bloqueo temporal de 5 minutos.
+   - Diálogo modal interceptor para cambio obligatorio de contraseña provisional en primer acceso.
+2. **Panel de Administración (`AdminView`)**:
+   - Pestaña **Bibliotecarios**: Tabla con estado (Activo/Inactivo) y formulario de alta.
+   - Pestaña **Catálogo**: Explorador maestro-detalle (Libro -> Copias con código de barras y estado).
+   - Pestaña **Configuración**: Formulario de parámetros en tiempo real con confirmación modal.
+   - Pestaña **Reportes**: Visualizador de datos tabulares y selector `JFileChooser` para exportar a Excel.
+3. **Panel de Atención de Biblioteca (`BibliotecarioView`)**:
+   - Pestaña **Clientes**: Buscador en vivo, edición y diálogo con contraseña temporal generada.
+   - Pestaña **Préstamos**: Formulario de atención rápida (DNI + Código de barras) con comprobante visual.
+   - Pestaña **Devoluciones**: Cálculo en tiempo real de días de mora, multa en Soles y cobro inmediato.
+   - Pestaña **Reservas**: Cola FIFO de espera con asignación automática al devolver ejemplares.
+   - Pestaña **Multas**: Liquidación y cobro de multas con estado PENDIENTE / PAGADA.
+4. **Portal del Lector (`ClienteView`)**:
+   - Pestaña **Catálogo**: Buscador por título/autor y botón dinámico para reservar libros sin stock.
+   - Pestaña **Mis Préstamos**: Tabla con resaltado visual en rojo de préstamos vencidos y botón de renovación.
+   - Pestaña **Mis Reservas**: Seguimiento de estado (`PENDIENTE`, `LISTA`) y cancelación voluntaria.
+   - Pestaña **Mis Multas** y **Seguridad**: Historial de cobros y cambio de contraseña personal.
 
 ---
 
