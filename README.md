@@ -2,8 +2,6 @@
 
 Sistema de escritorio integral desarrollado en **Java 17** con arquitectura **MVC**, patrón **DAO**, principios **SOLID**, seguridad criptográfica **BCrypt** y desarrollo guiado por pruebas (**TDD**). Administra préstamos, devoluciones, cálculo automatizado de multas por mora, cola de reservas FIFO, control de ejemplares físicos, generación de reportes en Excel (.xlsx) y control de acceso basado en roles (**ADMIN**, **BIBLIOTECARIO**, **CLIENTE**).
 
-Proyecto académico para la evaluación de **Avance de Proyecto Final 3 (UTP)**.
-
 ---
 
 ## 📌 Requisitos del Sistema
@@ -11,7 +9,7 @@ Proyecto académico para la evaluación de **Avance de Proyecto Final 3 (UTP)**.
 - **Java Development Kit (JDK)**: Versión 17 o superior (compatible con Java 21).
 - **Apache Maven**: Versión 3.8.0 o superior.
 - **MySQL Server**: Versión 8.0 o superior.
-- **Entorno de Desarrollo**: Visual Studio Code con *Extension Pack for Java* o Antigravity IDE.
+- **Entorno de Desarrollo**: Visual Studio Code con *Extension Pack for Java*
 
 ---
 
@@ -139,11 +137,3 @@ La interfaz gráfica del sistema ha sido rediseñada integralmente bajo un **Sis
    - Gestión autónoma de reservas y renovaciones de préstamos vigentes con un solo clic.
 
 ---
-
-## 👥 Equipo de Desarrollo y Roles
-
-- **Líder de Proyecto & Arquitecto de Software**: Diseño arquitectónico MVC/DAO/SOLID, configuración Maven, seguridad BCrypt y control transaccional.
-- **Especialista en Persistencia & Base de Datos**: Modelado relacional en MySQL 8, DDL/DML, implementación JDBC con PreparedStatement y pruebas DAO con rollback.
-- **Desarrollador de Lógica de Negocio & TDD**: Servicios de negocio (Préstamos, Devoluciones, Reservas FIFO, Multas) y pruebas unitarias con JUnit 5/Mockito.
-- **Desarrollador Frontend Swing & UX**: Interfaces gráficas Java Swing con FlatLaf, controladores MVC y validación visual.
-- **Especialista en Integraciones & QA**: Reportes en Apache POI, utilidades Guava/Commons, logging con Logback y documentación técnica Javadoc.
