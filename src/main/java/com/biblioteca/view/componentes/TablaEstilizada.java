@@ -32,7 +32,7 @@ public class TablaEstilizada extends JTable {
 
     /**
      * Aplica anchos preferidos por posición a las columnas de la tabla.
-     * Si un valor es <= 0, no se modifica la columna.
+     * Si un valor es menor o igual a cero, no se modifica la columna.
      *
      * @param anchos Array de anchos en píxeles
      */

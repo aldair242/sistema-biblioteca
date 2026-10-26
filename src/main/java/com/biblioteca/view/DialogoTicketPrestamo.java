@@ -23,6 +23,13 @@ public class DialogoTicketPrestamo extends JDialog {
 
     private JLabel lblEstadoNotificacion;
 
+    /**
+     * Construye el diálogo modal de emisión de comprobante de préstamo.
+     *
+     * @param parent Ventana propietaria para centrado y modalidad
+     * @param ticket Objeto modelo con los datos del préstamo y lector
+     * @param notificacionService Servicio para despacho de notificaciones Push y correo
+     */
     public DialogoTicketPrestamo(Window parent, TicketPrestamo ticket, NotificacionService notificacionService) {
         super(parent, "Ticket de Préstamo - Emisión Exitosa", ModalityType.APPLICATION_MODAL);
         this.ticket = ticket;
@@ -114,7 +121,7 @@ public class DialogoTicketPrestamo extends JDialog {
                 BorderFactory.createEmptyBorder(10, 14, 10, 14)
         ));
 
-        JLabel lblTitVence = new JLabel("⏰ FECHA LÍMITE DE DEVOLUCIÓN REQUERIDA:");
+        JLabel lblTitVence = new JLabel("FECHA LÍMITE DE DEVOLUCIÓN REQUERIDA:");
         lblTitVence.setFont(Tema.FUENTE_PEQUENA_BOLD);
         lblTitVence.setForeground(Tema.COLOR_PELIGRO);
 
@@ -153,9 +160,9 @@ public class DialogoTicketPrestamo extends JDialog {
         JPanel panelBotones = new JPanel(new GridLayout(2, 2, 10, 10));
         panelBotones.setOpaque(false);
 
-        BotonPrimario btnPush = new BotonPrimario("📱 Enviar WhatsApp / SMS", Iconos.crearCheck(16, Color.WHITE));
-        BotonAcento btnCorreo = new BotonAcento("✉️ Enviar Correo Confirmación", Iconos.crearCheck(16, Color.WHITE));
-        BotonSecundario btnCopiar = new BotonSecundario("📋 Copiar Texto del Ticket", Iconos.crearReportes(16, Tema.COLOR_PRIMARIO));
+        BotonPrimario btnPush = new BotonPrimario("Enviar WhatsApp / SMS", Iconos.crearCheck(16, Color.WHITE));
+        BotonAcento btnCorreo = new BotonAcento("Enviar Correo Confirmación", Iconos.crearCheck(16, Color.WHITE));
+        BotonSecundario btnCopiar = new BotonSecundario("Copiar Texto del Ticket", Iconos.crearReportes(16, Tema.COLOR_PRIMARIO));
         BotonSecundario btnCerrar = new BotonSecundario("Cerrar", null);
 
         panelBotones.add(btnPush);
@@ -172,7 +179,7 @@ public class DialogoTicketPrestamo extends JDialog {
         btnPush.addActionListener(e -> {
             boolean ok = notificacionService.enviarPushWhatsApp(ticket);
             if (ok) {
-                lblEstadoNotificacion.setText("✅ Push / WhatsApp despachado al móvil: " +
+                lblEstadoNotificacion.setText("Push / WhatsApp despachado al móvil: " +
                         (ticket.getClienteTelefono() != null ? ticket.getClienteTelefono() : "cliente"));
                 lblEstadoNotificacion.setForeground(Tema.COLOR_ACENTO);
                 DialogoModerno.mostrarMensaje(this,
@@ -186,7 +193,7 @@ public class DialogoTicketPrestamo extends JDialog {
         btnCorreo.addActionListener(e -> {
             boolean ok = notificacionService.enviarCorreo(ticket);
             if (ok) {
-                lblEstadoNotificacion.setText("✅ Correo de confirmación enviado a: " +
+                lblEstadoNotificacion.setText("Correo de confirmación enviado a: " +
                         (ticket.getClienteEmail() != null ? ticket.getClienteEmail() : "cliente"));
                 lblEstadoNotificacion.setForeground(Tema.COLOR_ACENTO);
                 DialogoModerno.mostrarMensaje(this,
@@ -200,7 +207,7 @@ public class DialogoTicketPrestamo extends JDialog {
         btnCopiar.addActionListener(e -> {
             String texto = notificacionService.generarTextoImprimible(ticket);
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(texto), null);
-            lblEstadoNotificacion.setText("📋 ¡Comprobante copiado al portapapeles con éxito!");
+            lblEstadoNotificacion.setText("¡Comprobante copiado al portapapeles con éxito!");
             lblEstadoNotificacion.setForeground(Tema.COLOR_PRIMARIO);
         });
 
@@ -224,3 +231,4 @@ public class DialogoTicketPrestamo extends JDialog {
         p.add(lblV, gbc);
     }
 }
+
