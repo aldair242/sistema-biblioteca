@@ -139,7 +139,11 @@ public class BibliotecarioController {
         view.cargarTablaCatEjemplares(ejemplares);
     }
 
-    public void cambiarEstadoEjemplarDialog(int ejemplarId, int libroId) {
+    public void cambiarEstadoEjemplarDialog(int ejemplarId) {
+        cambiarEstadoEjemplarDialog(ejemplarId, null);
+    }
+
+    public void cambiarEstadoEjemplarDialog(int ejemplarId, Integer libroId) {
         EstadoEjemplar[] opciones = {EstadoEjemplar.DISPONIBLE, EstadoEjemplar.EN_MANTENIMIENTO, EstadoEjemplar.BAJA};
         EstadoEjemplar elegido = (EstadoEjemplar) JOptionPane.showInputDialog(
                 view,
@@ -155,7 +159,9 @@ public class BibliotecarioController {
                 sf.getCatalogoService().cambiarEstadoEjemplar(ejemplarId, elegido);
                 view.mostrarMensaje("Estado de ejemplar actualizado.");
                 cargarCatalogo();
-                cargarEjemplaresDeLibro(libroId);
+                if (libroId != null) {
+                    cargarEjemplaresDeLibro(libroId);
+                }
             } catch (Exception ex) {
                 ManejadorExcepciones.manejar(view, "cambio de estado de ejemplar", ex);
             }
@@ -198,14 +204,12 @@ public class BibliotecarioController {
     public void registrarPrestamo(String dni, String codigoBarras) {
         try {
             Prestamo p = sf.getPrestamoService().registrarPrestamo(dni, codigoBarras);
-            String comprobante = "<html><body>" +
-                    "<h3>Préstamo Registrado con Éxito</h3>" +
+            String comprobante = "<h3>Préstamo Registrado con Éxito</h3>" +
                     "<b>ID Préstamo:</b> " + p.getId() + "<br/>" +
                     "<b>Fecha de Préstamo:</b> " + p.getFechaPrestamo() + "<br/>" +
-                    "<b>Fecha de Vencimiento:</b> <span style='color:red; font-weight:bold;'>" + p.getFechaVencimiento() + "</span><br/>" +
-                    "<p><i>El cliente debe devolver el ejemplar a más tardar en la fecha indicada para evitar multas.</i></p>" +
-                    "</body></html>";
-            JOptionPane.showMessageDialog(view, comprobante, "Comprobante de Préstamo", JOptionPane.INFORMATION_MESSAGE);
+                    "<b>Fecha de Vencimiento:</b> <span style='color:#C62828; font-weight:bold;'>" + p.getFechaVencimiento() + "</span><br/>" +
+                    "<p><i>El cliente debe devolver el ejemplar a más tardar en la fecha indicada para evitar multas.</i></p>";
+            view.mostrarMensaje(comprobante);
 
             cargarPrestamos();
             cargarCatalogo();
@@ -220,10 +224,13 @@ public class BibliotecarioController {
                 "Confirmar Renovación", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                Prestamo renovado = sf.getPrestamoService().renovarPrestamo(prestamoId);
+                sf.getPrestamoService().renovar(prestamoId);
+                Prestamo renovado = sf.getPrestamoService().buscarPorId(prestamoId).orElse(null);
+                String nuevaFecha = (renovado != null) ? renovado.getFechaVencimiento().toString() : "";
+                int rens = (renovado != null) ? renovado.getRenovaciones() : 1;
                 view.mostrarMensaje("<html><b>Préstamo renovado con éxito.</b><br/>" +
-                        "Nueva fecha de vencimiento: <span style='color:blue; font-weight:bold;'>" +
-                        renovado.getFechaVencimiento() + "</span> (Renovación #" + renovado.getRenovaciones() + ")</html>");
+                        "Nueva fecha de vencimiento: <span style='color:#3F51B5; font-weight:bold;'>" +
+                        nuevaFecha + "</span> (Renovación #" + rens + ")</html>");
                 cargarPrestamos();
             } catch (Exception ex) {
                 ManejadorExcepciones.manejar(view, "renovación de préstamo", ex);

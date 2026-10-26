@@ -11,8 +11,7 @@ import com.biblioteca.view.AdminView;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.Component;
-import java.math.BigDecimal;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -46,7 +45,7 @@ public class AdminController {
     }
 
     public void guardarBibliotecario(String username, String nombre, String password) {
-        if (username.trim().isEmpty() || nombre.trim().isEmpty()) {
+        if (username == null || username.trim().isEmpty() || nombre == null || nombre.trim().isEmpty()) {
             view.mostrarAdvertencia("El nombre de usuario y el nombre completo son obligatorios.");
             return;
         }
@@ -58,7 +57,7 @@ public class AdminController {
             }
 
             if (password == null || password.trim().isEmpty()) {
-                password = "Biblio" + (int)(Math.random() * 9000 + 1000) + "!"; // Contraseña inicial generada
+                password = "Biblio" + (int)(Math.random() * 9000 + 1000) + "!";
             }
 
             String hash = PasswordHasher.hashear(password.trim());
@@ -75,7 +74,7 @@ public class AdminController {
     }
 
     public void actualizarBibliotecario(int id, String username, String nombre, String passwordOpcional) {
-        if (username.trim().isEmpty() || nombre.trim().isEmpty()) {
+        if (username == null || username.trim().isEmpty() || nombre == null || nombre.trim().isEmpty()) {
             view.mostrarAdvertencia("El nombre de usuario y el nombre completo son obligatorios.");
             return;
         }
@@ -234,7 +233,11 @@ public class AdminController {
         }
     }
 
-    public void cambiarEstadoEjemplarDialog(int ejemplarId, int libroId) {
+    public void cambiarEstadoEjemplarDialog(int ejemplarId) {
+        cambiarEstadoEjemplarDialog(ejemplarId, null);
+    }
+
+    public void cambiarEstadoEjemplarDialog(int ejemplarId, Integer libroId) {
         EstadoEjemplar[] estados = {EstadoEjemplar.DISPONIBLE, EstadoEjemplar.EN_MANTENIMIENTO, EstadoEjemplar.BAJA};
         EstadoEjemplar seleccionado = (EstadoEjemplar) JOptionPane.showInputDialog(
                 view,
@@ -250,7 +253,9 @@ public class AdminController {
                 serviceFactory.getCatalogoService().cambiarEstadoEjemplar(ejemplarId, seleccionado);
                 view.mostrarMensaje("Estado del ejemplar actualizado exitosamente.");
                 cargarCatalogo();
-                cargarEjemplaresDeLibro(libroId);
+                if (libroId != null) {
+                    cargarEjemplaresDeLibro(libroId);
+                }
             } catch (Exception ex) {
                 ManejadorExcepciones.manejar(view, "modificación de estado de ejemplar", ex);
             }
@@ -294,28 +299,28 @@ public class AdminController {
         DefaultTableModel model = new DefaultTableModel();
 
         switch (tipo) {
-            case 0 -> { // Préstamos activos y vencidos
+            case 0 -> {
                 model.setColumnIdentifiers(new String[]{"ID", "Cliente ID", "Ejemplar ID", "Fecha Préstamo", "Fecha Vencimiento", "Estado", "Renovaciones"});
                 List<Prestamo> prestamos = serviceFactory.getPrestamoService().listarActivosYVencidos();
                 for (Prestamo p : prestamos) {
                     model.addRow(new Object[]{p.getId(), p.getClienteId(), p.getEjemplarId(), p.getFechaPrestamo(), p.getFechaVencimiento(), p.getEstado(), p.getRenovaciones()});
                 }
             }
-            case 1 -> { // Multas pendientes y pagadas
+            case 1 -> {
                 model.setColumnIdentifiers(new String[]{"ID", "Préstamo ID", "Días Retraso", "Tarifa Aplicada", "Monto", "Estado", "Fecha Pago"});
                 List<Multa> multas = serviceFactory.getMultaService().listarTodas();
                 for (Multa m : multas) {
                     model.addRow(new Object[]{m.getId(), m.getPrestamoId(), m.getDiasRetraso(), "S/ " + m.getTarifaAplicada(), "S/ " + m.getMonto(), m.getEstado(), m.getFechaPago() != null ? m.getFechaPago() : "-"});
                 }
             }
-            case 2 -> { // Libros más prestados (Top 10)
+            case 2 -> {
                 model.setColumnIdentifiers(new String[]{"ID", "ISBN", "Título", "Autor", "Categoría", "Editorial", "Año"});
                 List<Libro> top = serviceFactory.getLibroDAO().listarMasPrestados(10);
                 for (Libro l : top) {
                     model.addRow(new Object[]{l.getId(), l.getIsbn(), l.getTitulo(), l.getAutor(), l.getCategoria(), l.getEditorial(), l.getAnio()});
                 }
             }
-            case 3 -> { // Inventario de ejemplares por estado
+            case 3 -> {
                 model.setColumnIdentifiers(new String[]{"ID Ejemplar", "ID Libro", "Código de Barras", "Estado Actual"});
                 List<Ejemplar> ejemplares = serviceFactory.getEjemplarDAO().listar();
                 for (Ejemplar ej : ejemplares) {
@@ -337,12 +342,12 @@ public class AdminController {
             case 3 -> "Reporte_Inventario_Ejemplares.xlsx";
             default -> "Reporte_Biblioteca.xlsx";
         };
-        chooser.setSelectedFile(new java.io.File(nombreSugerido));
+        chooser.setSelectedFile(new File(nombreSugerido));
 
         int userSelection = chooser.showSaveDialog(view);
         if (userSelection == JFileChooser.APPROVE_OPTION) {
-            java.io.File archivoSeleccionado = chooser.getSelectedFile();
-            java.io.File archivoNormalizado = ExcelExporter.normalizarRutaArchivo(archivoSeleccionado);
+            File archivoSeleccionado = chooser.getSelectedFile();
+            File archivoNormalizado = ExcelExporter.normalizarRutaArchivo(archivoSeleccionado);
 
             if (archivoNormalizado.exists()) {
                 int confirm = JOptionPane.showConfirmDialog(

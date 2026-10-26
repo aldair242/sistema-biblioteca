@@ -4,15 +4,15 @@ import com.biblioteca.config.DatabaseCheck;
 import com.biblioteca.controller.AuthController;
 import com.biblioteca.service.ServiceFactory;
 import com.biblioteca.view.LoginView;
-import com.formdev.flatlaf.FlatLightLaf;
+import com.biblioteca.view.theme.Tema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 
 /**
- * Clase principal que inicializa la configuración, verifica la base de datos y arranca la interfaz gráfica.
+ * Clase principal que inicializa la configuración, aplica el sistema de diseño visual,
+ * verifica la base de datos y arranca la interfaz gráfica.
  */
 public class App {
 
@@ -26,12 +26,8 @@ public class App {
             logger.error("Excepción global no controlada en el hilo '{}': {}", thread.getName(), throwable.getMessage(), throwable);
         });
 
-        // Configuración del tema visual FlatLaf
-        try {
-            UIManager.setLookAndFeel(new FlatLightLaf());
-        } catch (Exception e) {
-            logger.warn("No se pudo inicializar FlatLightLaf, utilizando Look & Feel por defecto", e);
-        }
+        // Configuración del tema visual y sistema de diseño global
+        Tema.aplicar();
 
         // Ejecución en el Event Dispatch Thread (EDT)
         SwingUtilities.invokeLater(() -> {
@@ -53,7 +49,7 @@ public class App {
             LoginView loginView = new LoginView();
             AuthController authController = new AuthController(loginView, ServiceFactory.getInstancia().getAuthService());
             authController.iniciar();
-            logger.info("Aplicación iniciada correctamente.");
+            logger.info("Aplicación iniciada correctamente con diseño moderno.");
         });
     }
 }
