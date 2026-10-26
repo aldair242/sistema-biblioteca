@@ -274,8 +274,21 @@ public class ClienteView extends JFrame {
         panel.add(panelVistaCatalogoContenedor, BorderLayout.CENTER);
 
         // Eventos
-        btnBuscar.addActionListener(e -> {
+        Runnable runBuscarLib = () -> {
             if (controller != null) controller.buscarLibros(txtCatalogoBuscar.getText());
+        };
+        btnBuscar.addActionListener(e -> runBuscarLib.run());
+        txtCatalogoBuscar.addActionListener(e -> runBuscarLib.run());
+
+        txtCatalogoBuscar.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { checkVacio(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { checkVacio(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { checkVacio(); }
+            private void checkVacio() {
+                if (txtCatalogoBuscar.getText().trim().isEmpty() && controller != null) {
+                    controller.cargarCatalogo();
+                }
+            }
         });
 
         btnTodos.addActionListener(e -> {
@@ -613,6 +626,16 @@ public class ClienteView extends JFrame {
 
         // Actualizar cuadrícula de tarjetas
         renderizarGridTarjetas(libros, contarDisp);
+
+        if (tablaCatalogo.getColumnCount() >= 7) {
+            tablaCatalogo.fijarAnchoColumna(0, 45, 50, 60);    // ID
+            tablaCatalogo.fijarAnchoColumna(1, 120, 135, 150); // ISBN
+            tablaCatalogo.fijarAnchoColumna(2, 200, 270, 0);   // Título
+            tablaCatalogo.fijarAnchoColumna(3, 140, 170, 220); // Autor
+            tablaCatalogo.fijarAnchoColumna(4, 100, 120, 150); // Categoría
+            tablaCatalogo.fijarAnchoColumna(5, 110, 130, 160); // Editorial
+            tablaCatalogo.fijarAnchoColumna(6, 75, 85, 105);   // Disponibles
+        }
     }
 
     public void cargarTablaPrestamos(List<Prestamo> prestamos) {
@@ -639,6 +662,15 @@ public class ClienteView extends JFrame {
         if (kpiProximoVencimiento != null) {
             kpiProximoVencimiento.setValor(proximoVenc != null ? proximoVenc.toString() : "Al día");
         }
+        if (tablaPrestamos.getColumnCount() >= 7) {
+            tablaPrestamos.fijarAnchoColumna(0, 45, 50, 60);   // ID
+            tablaPrestamos.fijarAnchoColumna(1, 80, 95, 110);  // Ejemplar ID
+            tablaPrestamos.fijarAnchoColumna(2, 100, 120, 135);// Fecha Préstamo
+            tablaPrestamos.fijarAnchoColumna(3, 100, 120, 135);// Fecha Vencimiento
+            tablaPrestamos.fijarAnchoColumna(4, 100, 120, 135);// Fecha Devolución
+            tablaPrestamos.fijarAnchoColumna(5, 100, 120, 140);// Estado
+            tablaPrestamos.fijarAnchoColumna(6, 80, 95, 110);  // Renovaciones
+        }
     }
 
     public void cargarTablaReservas(List<Reserva> reservas) {
@@ -656,6 +688,14 @@ public class ClienteView extends JFrame {
         }
 
         if (kpiMisReservas != null) kpiMisReservas.setValor(String.valueOf(activas));
+        if (tablaReservas.getColumnCount() >= 6) {
+            tablaReservas.fijarAnchoColumna(0, 45, 50, 60);   // ID
+            tablaReservas.fijarAnchoColumna(1, 75, 85, 100);  // Libro ID
+            tablaReservas.fijarAnchoColumna(2, 75, 85, 100);  // Ejemplar ID
+            tablaReservas.fijarAnchoColumna(3, 100, 120, 135);// Fecha Reserva
+            tablaReservas.fijarAnchoColumna(4, 100, 120, 135);// Fecha Expiración
+            tablaReservas.fijarAnchoColumna(5, 100, 120, 140);// Estado
+        }
     }
 
     public void cargarTablaMultas(List<Multa> multas) {
@@ -674,6 +714,15 @@ public class ClienteView extends JFrame {
 
         lblTotalMultas.setText("Total Pendiente de Pago: S/ " + totalPendiente.toPlainString());
         if (kpiMisMultas != null) kpiMisMultas.setValor("S/ " + totalPendiente.toPlainString());
+        if (tablaMultas.getColumnCount() >= 7) {
+            tablaMultas.fijarAnchoColumna(0, 45, 50, 60);   // ID
+            tablaMultas.fijarAnchoColumna(1, 75, 85, 100);  // Préstamo ID
+            tablaMultas.fijarAnchoColumna(2, 80, 95, 110);  // Días Retraso
+            tablaMultas.fijarAnchoColumna(3, 90, 110, 130); // Tarifa
+            tablaMultas.fijarAnchoColumna(4, 90, 110, 130); // Monto
+            tablaMultas.fijarAnchoColumna(5, 100, 120, 140);// Estado
+            tablaMultas.fijarAnchoColumna(6, 100, 120, 140);// Fecha Pago
+        }
     }
 
     public void limpiarFormSeguridad() {

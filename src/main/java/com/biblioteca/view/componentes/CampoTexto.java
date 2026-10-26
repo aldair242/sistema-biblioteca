@@ -63,3 +63,4 @@ public class CampoTexto extends JTextField {
         return estadoError;
     }
 }
+

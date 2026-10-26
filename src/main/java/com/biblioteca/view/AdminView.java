@@ -10,8 +10,11 @@ import com.biblioteca.view.theme.Tema;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,10 +56,23 @@ public class AdminView extends JFrame {
     // Pestaña Catálogo
     private Integer libroSeleccionadoId = null;
     private JLabel lblLibroModo;
+    private JPanel panelCuerpoFormLibro;
+    private BotonSecundario btnToggleFormLibro;
     private TablaEstilizada tablaLibros;
     private DefaultTableModel modeloLibros;
+    private JLabel lblLibrosCount;
+    private CampoTexto txtLibroBuscar;
+    private BotonSecundario btnLibroBuscar;
+    private BotonSecundario btnLibroMostrarTodos;
+
     private TablaEstilizada tablaEjemplares;
     private DefaultTableModel modeloEjemplares;
+    private JLabel lblEjTit;
+    private JLabel lblEjDetalle;
+    private CampoTexto txtEjemplarBuscar;
+    private BotonPrimario btnEjemplarAgregar;
+    private List<Ejemplar> ejemplaresActuales = new ArrayList<>();
+
     private CampoTexto txtLibroIsbn;
     private CampoTexto txtLibroTitulo;
     private CampoTexto txtLibroAutor;
@@ -97,8 +113,8 @@ public class AdminView extends JFrame {
     private void initComponents() {
         setTitle("Sistema de Gestión de Biblioteca - Panel de Administración");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1180, 760);
-        setMinimumSize(new Dimension(1100, 700));
+        setSize(1240, 800);
+        setMinimumSize(new Dimension(1120, 720));
         setLocationRelativeTo(null);
         setIconImage(Iconos.crearAppLogoImage(64));
 
@@ -361,84 +377,170 @@ public class AdminView extends JFrame {
 
     // --- VISTA CATÁLOGO ---
     private JPanel crearVistaCatalogo() {
-        JPanel panel = new JPanel(new BorderLayout(0, 14));
+        JPanel panel = new JPanel(new BorderLayout(0, 12));
         panel.setOpaque(false);
 
-        // Formulario Libro en Tarjeta
-        TarjetaPanel tarjetaForm = new TarjetaPanel(new BorderLayout(0, 10));
+        // 1. Formulario Libro en Tarjeta (Con interruptor para Ocultar/Mostrar)
+        TarjetaPanel tarjetaForm = new TarjetaPanel(new BorderLayout(0, 8));
+
+        JPanel panelHeaderForm = new JPanel(new BorderLayout());
+        panelHeaderForm.setOpaque(false);
         lblLibroModo = new JLabel("Modo: Registro de Nuevo Título");
         lblLibroModo.setFont(Tema.FUENTE_PEQUENA_BOLD);
         lblLibroModo.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
-        tarjetaForm.add(lblLibroModo, BorderLayout.NORTH);
+        panelHeaderForm.add(lblLibroModo, BorderLayout.WEST);
 
-        JPanel panelCampos = new JPanel(new GridLayout(2, 4, 14, 8));
+        btnToggleFormLibro = new BotonSecundario("Ocultar Formulario");
+        btnToggleFormLibro.setFont(Tema.FUENTE_PEQUENA);
+        panelHeaderForm.add(btnToggleFormLibro, BorderLayout.EAST);
+        tarjetaForm.add(panelHeaderForm, BorderLayout.NORTH);
+
+        panelCuerpoFormLibro = new JPanel(new BorderLayout(0, 10));
+        panelCuerpoFormLibro.setOpaque(false);
+
+        // Campos con GridBagLayout para proporciones óptimas y no apretadas
+        JPanel panelCampos = new JPanel(new GridBagLayout());
         panelCampos.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(3, 6, 4, 6);
 
-        panelCampos.add(crearCampo("ISBN:", txtLibroIsbn = new CampoTexto("978...")));
-        panelCampos.add(crearCampo("Título:", txtLibroTitulo = new CampoTexto("Título del libro")));
-        panelCampos.add(crearCampo("Autor:", txtLibroAutor = new CampoTexto("Nombre del autor")));
-        panelCampos.add(crearCampo("Categoría:", txtLibroCategoria = new CampoTexto("Ej. Programación")));
-        panelCampos.add(crearCampo("Editorial:", txtLibroEditorial = new CampoTexto("Ej. Pearson")));
+        // Fila 0: ISBN (18%), Título (42%), Autor (24%), Categoría (16%)
+        gbc.gridy = 0;
+        gbc.gridx = 0; gbc.weightx = 0.18;
+        panelCampos.add(crearCampo("ISBN:", txtLibroIsbn = new CampoTexto("978...")), gbc);
 
+        gbc.gridx = 1; gbc.weightx = 0.42;
+        panelCampos.add(crearCampo("Título del Libro:", txtLibroTitulo = new CampoTexto("Título completo de la obra")), gbc);
+
+        gbc.gridx = 2; gbc.weightx = 0.24;
+        panelCampos.add(crearCampo("Autor:", txtLibroAutor = new CampoTexto("Nombre del autor")), gbc);
+
+        gbc.gridx = 3; gbc.weightx = 0.16;
+        panelCampos.add(crearCampo("Categoría:", txtLibroCategoria = new CampoTexto("Ej. Programación")), gbc);
+
+        // Fila 1: Editorial (28%), Año (16%), Copias (16%), Espacio libre
+        gbc.gridy = 1;
+        gbc.gridx = 0; gbc.weightx = 0.28;
+        panelCampos.add(crearCampo("Editorial:", txtLibroEditorial = new CampoTexto("Ej. Pearson / Planeta")), gbc);
+
+        gbc.gridx = 1; gbc.weightx = 0.18;
         spinLibroAnio = new JSpinner(new SpinnerNumberModel(2024, 1500, 2100, 1));
-        panelCampos.add(crearCampo("Año de publicación:", spinLibroAnio));
+        panelCampos.add(crearCampo("Año de publicación:", spinLibroAnio), gbc);
 
+        gbc.gridx = 2; gbc.weightx = 0.18;
         spinEjemplaresIniciales = new JSpinner(new SpinnerNumberModel(3, 1, 50, 1));
-        panelCampos.add(crearCampo("Copias iniciales:", spinEjemplaresIniciales));
+        panelCampos.add(crearCampo("Copias iniciales:", spinEjemplaresIniciales), gbc);
 
-        tarjetaForm.add(panelCampos, BorderLayout.CENTER);
+        gbc.gridx = 3; gbc.weightx = 0.36;
+        panelCampos.add(Box.createGlue(), gbc);
 
-        // Botones de acción Libro
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        panelCuerpoFormLibro.add(panelCampos, BorderLayout.CENTER);
+
+        // Botones de acción del Libro
+        JPanel panelBotones = new JPanel(new BorderLayout(10, 0));
         panelBotones.setOpaque(false);
 
-        btnLibroLimpiar = new BotonSecundario("Limpiar");
-        btnLibroAgregarEjemplar = new BotonSecundario("+ Agregar Ejemplares", Iconos.crearMas(16, Tema.COLOR_PRIMARIO));
+        JPanel panelBotonesIzq = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        panelBotonesIzq.setOpaque(false);
+        btnLibroLimpiar = new BotonSecundario("Limpiar Campos");
+        panelBotonesIzq.add(btnLibroLimpiar);
+
+        JPanel panelBotonesDer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        panelBotonesDer.setOpaque(false);
         btnLibroEliminar = new BotonPeligro("Eliminar Libro", Iconos.crearEliminar(16, Color.WHITE));
         btnLibroActualizar = new BotonAcento("Guardar Cambios", Iconos.crearCheck(16, Color.WHITE));
         btnLibroRegistrar = new BotonPrimario("Registrar Libro", Iconos.crearMas(16, Color.WHITE));
+        btnLibroAgregarEjemplar = new BotonSecundario("Agregar Copias", Iconos.crearMas(16, Tema.COLOR_PRIMARIO));
 
-        panelBotones.add(btnLibroLimpiar);
-        panelBotones.add(btnLibroAgregarEjemplar);
-        panelBotones.add(btnLibroEliminar);
-        panelBotones.add(btnLibroActualizar);
-        panelBotones.add(btnLibroRegistrar);
-        tarjetaForm.add(panelBotones, BorderLayout.SOUTH);
+        panelBotonesDer.add(btnLibroEliminar);
+        panelBotonesDer.add(btnLibroActualizar);
+        panelBotonesDer.add(btnLibroRegistrar);
 
+        panelBotones.add(panelBotonesIzq, BorderLayout.WEST);
+        panelBotones.add(panelBotonesDer, BorderLayout.EAST);
+        panelCuerpoFormLibro.add(panelBotones, BorderLayout.SOUTH);
+
+        tarjetaForm.add(panelCuerpoFormLibro, BorderLayout.CENTER);
         panel.add(tarjetaForm, BorderLayout.NORTH);
 
-        // Split de Tablas (Libros arriba, Ejemplares abajo)
+        // 2. Split de Tablas (Libros arriba con búsqueda, Ejemplares abajo con filtro)
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        splitPane.setResizeWeight(0.55);
+        splitPane.setResizeWeight(0.60);
+        splitPane.setDividerSize(7);
+        splitPane.setContinuousLayout(true);
         splitPane.setBorder(null);
         splitPane.setOpaque(false);
 
-        // Tarjeta Libros
+        // --- Tarjeta Libros con Barra de Búsqueda Integrada ---
         TarjetaPanel tarjetaLibros = new TarjetaPanel(new BorderLayout(0, 8));
+
+        JPanel panelHeaderLibros = new JPanel(new BorderLayout(10, 0));
+        panelHeaderLibros.setOpaque(false);
+
+        JPanel panelTitLibros = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        panelTitLibros.setOpaque(false);
         JLabel lblLibrosTit = new JLabel("Catálogo General de Libros");
         lblLibrosTit.setFont(Tema.FUENTE_SECCION);
-        tarjetaLibros.add(lblLibrosTit, BorderLayout.NORTH);
+        lblLibrosTit.setForeground(Tema.COLOR_TEXTO);
+        lblLibrosCount = new JLabel("(0 títulos)");
+        lblLibrosCount.setFont(Tema.FUENTE_PEQUENA);
+        lblLibrosCount.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
+        panelTitLibros.add(lblLibrosTit);
+        panelTitLibros.add(lblLibrosCount);
+        panelHeaderLibros.add(panelTitLibros, BorderLayout.WEST);
+
+        // Barra de Búsqueda de Libros
+        JPanel panelBuscarLibros = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        panelBuscarLibros.setOpaque(false);
+        txtLibroBuscar = new CampoTexto("Buscar por título, autor, ISBN o categoría...", 25);
+        btnLibroBuscar = new BotonSecundario("Buscar", Iconos.crearBuscar(16, Tema.COLOR_PRIMARIO));
+        btnLibroMostrarTodos = new BotonSecundario("Mostrar Todos");
+
+        panelBuscarLibros.add(txtLibroBuscar);
+        panelBuscarLibros.add(btnLibroBuscar);
+        panelBuscarLibros.add(btnLibroMostrarTodos);
+        panelHeaderLibros.add(panelBuscarLibros, BorderLayout.EAST);
+        tarjetaLibros.add(panelHeaderLibros, BorderLayout.NORTH);
 
         modeloLibros = new DefaultTableModel(new String[]{"ID", "ISBN", "Título", "Autor", "Categoría", "Editorial", "Año", "Disponibles"}, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         tablaLibros = new TablaEstilizada(modeloLibros);
-        tablaLibros.setMensajeVacio("No hay libros registrados en el catálogo.");
+        tablaLibros.setMensajeVacio("No se encontraron libros que coincidan con la búsqueda.");
+        configurarColumnasLibros();
+
         tarjetaLibros.add(new JScrollPane(tablaLibros), BorderLayout.CENTER);
         splitPane.setTopComponent(tarjetaLibros);
 
-        // Tarjeta Ejemplares
+        // --- Tarjeta Ejemplares con Filtro y Acciones ---
         TarjetaPanel tarjetaEjemplares = new TarjetaPanel(new BorderLayout(0, 8));
-        JPanel panelHeaderEj = new JPanel(new BorderLayout());
-        panelHeaderEj.setOpaque(false);
-        JLabel lblEjTit = new JLabel("Ejemplares Físicos del Libro Seleccionado");
-        lblEjTit.setFont(Tema.FUENTE_SECCION);
-        panelHeaderEj.add(lblEjTit, BorderLayout.WEST);
 
+        JPanel panelHeaderEj = new JPanel(new BorderLayout(10, 0));
+        panelHeaderEj.setOpaque(false);
+
+        JPanel panelTitEj = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        panelTitEj.setOpaque(false);
+        lblEjTit = new JLabel("Ejemplares Físicos");
+        lblEjTit.setFont(Tema.FUENTE_SECCION);
+        lblEjTit.setForeground(Tema.COLOR_TEXTO);
+        lblEjDetalle = new JLabel("(Seleccione un libro en la tabla superior para ver sus copias)");
+        lblEjDetalle.setFont(Tema.FUENTE_PEQUENA);
+        lblEjDetalle.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
+        panelTitEj.add(lblEjTit);
+        panelTitEj.add(lblEjDetalle);
+        panelHeaderEj.add(panelTitEj, BorderLayout.WEST);
+
+        // Acciones y Filtro de Ejemplares
         JPanel panelAccionesEj = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         panelAccionesEj.setOpaque(false);
+        txtEjemplarBuscar = new CampoTexto("Filtrar copias...", 16);
+        btnEjemplarAgregar = new BotonPrimario("Agregar Copias", Iconos.crearMas(16, Color.WHITE));
         btnEjemplarCambiarEstado = new BotonSecundario("Cambiar Estado");
         btnEjemplarEliminar = new BotonPeligro("Eliminar Ejemplar");
+
+        panelAccionesEj.add(txtEjemplarBuscar);
+        panelAccionesEj.add(btnEjemplarAgregar);
         panelAccionesEj.add(btnEjemplarCambiarEstado);
         panelAccionesEj.add(btnEjemplarEliminar);
         panelHeaderEj.add(panelAccionesEj, BorderLayout.EAST);
@@ -448,13 +550,23 @@ public class AdminView extends JFrame {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         tablaEjemplares = new TablaEstilizada(modeloEjemplares);
-        tablaEjemplares.setMensajeVacio("Seleccione un libro para consultar sus ejemplares.");
+        tablaEjemplares.setMensajeVacio("Seleccione un libro para consultar sus ejemplares físicos.");
+        configurarColumnasEjemplares();
+
         tarjetaEjemplares.add(new JScrollPane(tablaEjemplares), BorderLayout.CENTER);
         splitPane.setBottomComponent(tarjetaEjemplares);
 
         panel.add(splitPane, BorderLayout.CENTER);
 
-        // Eventos Catálogo
+        // --- Eventos del Formulario y Toggle ---
+        btnToggleFormLibro.addActionListener(e -> {
+            boolean visible = !panelCuerpoFormLibro.isVisible();
+            panelCuerpoFormLibro.setVisible(visible);
+            btnToggleFormLibro.setText(visible ? "Ocultar Formulario" : "Mostrar Formulario (+)");
+            tarjetaForm.revalidate();
+            tarjetaForm.repaint();
+        });
+
         btnLibroRegistrar.addActionListener(e -> {
             if (controller != null) {
                 controller.guardarLibro(txtLibroIsbn.getText(), txtLibroTitulo.getText(), txtLibroAutor.getText(),
@@ -485,9 +597,10 @@ public class AdminView extends JFrame {
             }
         });
 
-        btnLibroAgregarEjemplar.addActionListener(e -> {
+        // Evento compartido para agregar copias (desde el form o desde la tarjeta de ejemplares)
+        java.awt.event.ActionListener accionAgregarCopias = e -> {
             if (libroSeleccionadoId == null) {
-                DialogoModerno.mostrarMensaje(this, "Seleccione primero un libro para agregarle nuevas copias.", "Validación", DialogoModerno.TipoDialogo.ADVERTENCIA);
+                DialogoModerno.mostrarMensaje(this, "Seleccione primero un libro de la tabla para incorporarle nuevas copias.", "Validación", DialogoModerno.TipoDialogo.ADVERTENCIA);
                 return;
             }
             String cantStr = JOptionPane.showInputDialog(this, "¿Cuántos ejemplares desea incorporar a este libro?", "1");
@@ -500,10 +613,47 @@ public class AdminView extends JFrame {
                     DialogoModerno.mostrarMensaje(this, "Debe ingresar una cantidad entera válida mayor a 0.", "Atención", DialogoModerno.TipoDialogo.ADVERTENCIA);
                 }
             }
-        });
+        };
+        btnLibroAgregarEjemplar.addActionListener(accionAgregarCopias);
+        btnEjemplarAgregar.addActionListener(accionAgregarCopias);
 
         btnLibroLimpiar.addActionListener(e -> limpiarFormLibro());
 
+        // --- Eventos de Búsqueda de Libros ---
+        Runnable ejecutarBusquedaLibros = () -> {
+            if (controller != null) {
+                controller.buscarCatalogo(txtLibroBuscar.getText());
+            }
+        };
+        btnLibroBuscar.addActionListener(e -> ejecutarBusquedaLibros.run());
+        txtLibroBuscar.addActionListener(e -> ejecutarBusquedaLibros.run());
+
+        btnLibroMostrarTodos.addActionListener(e -> {
+            txtLibroBuscar.setText("");
+            if (controller != null) {
+                controller.cargarCatalogo();
+            }
+        });
+
+        txtLibroBuscar.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { verificarVacio(); }
+            public void removeUpdate(DocumentEvent e) { verificarVacio(); }
+            public void changedUpdate(DocumentEvent e) { verificarVacio(); }
+            private void verificarVacio() {
+                if (txtLibroBuscar.getText().trim().isEmpty() && controller != null) {
+                    controller.cargarCatalogo();
+                }
+            }
+        });
+
+        // --- Eventos de Filtro de Ejemplares en Tiempo Real ---
+        txtEjemplarBuscar.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { filtrarEjemplares(); }
+            public void removeUpdate(DocumentEvent e) { filtrarEjemplares(); }
+            public void changedUpdate(DocumentEvent e) { filtrarEjemplares(); }
+        });
+
+        // --- Selección en Tabla de Libros ---
         tablaLibros.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int row = tablaLibros.getSelectedRow();
@@ -518,8 +668,18 @@ public class AdminView extends JFrame {
                         spinLibroAnio.setValue(Integer.parseInt(modeloLibros.getValueAt(row, 6).toString()));
                     } catch (Exception ignored) {}
 
-                    lblLibroModo.setText("Modo: Editando Libro ID #" + libroSeleccionadoId + " (" + txtLibroTitulo.getText() + ")");
+                    String titulo = txtLibroTitulo.getText();
+                    lblLibroModo.setText("Modo: Editando Libro ID #" + libroSeleccionadoId + " («" + (titulo.length() > 35 ? titulo.substring(0, 32) + "..." : titulo) + "»)");
                     lblLibroModo.setForeground(Tema.COLOR_PRIMARIO);
+
+                    lblEjTit.setText("Ejemplares de: " + (titulo.length() > 30 ? titulo.substring(0, 27) + "..." : titulo));
+
+                    // Si el formulario estaba oculto, expandirlo al seleccionar
+                    if (!panelCuerpoFormLibro.isVisible()) {
+                        panelCuerpoFormLibro.setVisible(true);
+                        btnToggleFormLibro.setText("Ocultar Formulario");
+                        tarjetaForm.revalidate();
+                    }
 
                     if (controller != null) {
                         controller.cargarEjemplaresDeLibro(libroSeleccionadoId);
@@ -549,6 +709,48 @@ public class AdminView extends JFrame {
         });
 
         return panel;
+    }
+
+    private void configurarColumnasLibros() {
+        if (tablaLibros.getColumnCount() >= 8) {
+            tablaLibros.fijarAnchoColumna(0, 45, 50, 60);    // ID
+            tablaLibros.fijarAnchoColumna(1, 120, 135, 150); // ISBN
+            tablaLibros.fijarAnchoColumna(2, 200, 270, 0);   // Título (expansible)
+            tablaLibros.fijarAnchoColumna(3, 140, 170, 220); // Autor
+            tablaLibros.fijarAnchoColumna(4, 100, 120, 150); // Categoría
+            tablaLibros.fijarAnchoColumna(5, 110, 130, 160); // Editorial
+            tablaLibros.fijarAnchoColumna(6, 50, 60, 70);    // Año
+            tablaLibros.fijarAnchoColumna(7, 75, 85, 105);   // Disponibles
+        }
+    }
+
+    private void configurarColumnasEjemplares() {
+        if (tablaEjemplares.getColumnCount() >= 3) {
+            tablaEjemplares.fijarAnchoColumna(0, 60, 80, 100);  // ID Ejemplar
+            tablaEjemplares.fijarAnchoColumna(1, 150, 220, 0);  // Código de Barras
+            tablaEjemplares.fijarAnchoColumna(2, 120, 150, 180);// Estado Físico
+        }
+    }
+
+    private void filtrarEjemplares() {
+        String f = txtEjemplarBuscar != null ? txtEjemplarBuscar.getText().trim().toLowerCase() : "";
+        modeloEjemplares.setRowCount(0);
+        int disp = 0;
+        for (Ejemplar ej : ejemplaresActuales) {
+            if (ej.getEstado() == com.biblioteca.model.EstadoEjemplar.DISPONIBLE) {
+                disp++;
+            }
+            if (f.isEmpty() ||
+                ej.getCodigoBarras().toLowerCase().contains(f) ||
+                ej.getEstado().name().toLowerCase().contains(f) ||
+                String.valueOf(ej.getId()).contains(f)) {
+                modeloEjemplares.addRow(new Object[]{ej.getId(), ej.getCodigoBarras(), ej.getEstado()});
+            }
+        }
+        if (lblEjDetalle != null && libroSeleccionadoId != null) {
+            lblEjDetalle.setText("(" + ejemplaresActuales.size() + " copias físicas | " + disp + " disponibles)");
+        }
+        configurarColumnasEjemplares();
     }
 
     // --- VISTA CONFIGURACIÓN ---
@@ -710,14 +912,23 @@ public class AdminView extends JFrame {
         if (kpiBibliotecarios != null) {
             kpiBibliotecarios.setValor(String.valueOf(lista.size()));
         }
+        configurarColumnasBibliotecarios();
+    }
+
+    private void configurarColumnasBibliotecarios() {
+        if (tablaBibliotecarios != null && tablaBibliotecarios.getColumnCount() >= 5) {
+            tablaBibliotecarios.fijarAnchoColumna(0, 45, 55, 70);
+            tablaBibliotecarios.fijarAnchoColumna(1, 110, 140, 180);
+            tablaBibliotecarios.fijarAnchoColumna(2, 180, 260, 0);
+            tablaBibliotecarios.fijarAnchoColumna(3, 100, 120, 140);
+            tablaBibliotecarios.fijarAnchoColumna(4, 90, 110, 130);
+        }
     }
 
     public void cargarTablaLibros(List<Libro> lista, java.util.function.Function<Integer, Integer> contarDisp) {
         modeloLibros.setRowCount(0);
-        int totalDisponibles = 0;
         for (Libro l : lista) {
             int disp = contarDisp != null ? contarDisp.apply(l.getId()) : 0;
-            totalDisponibles += disp;
             modeloLibros.addRow(new Object[]{
                     l.getId(), l.getIsbn(), l.getTitulo(), l.getAutor(), l.getCategoria(), l.getEditorial(), l.getAnio(), disp
             });
@@ -725,18 +936,16 @@ public class AdminView extends JFrame {
         if (kpiLibros != null) {
             kpiLibros.setValor(String.valueOf(lista.size()));
         }
+        if (lblLibrosCount != null) {
+            lblLibrosCount.setText("(" + lista.size() + " títulos)");
+        }
+        configurarColumnasLibros();
     }
 
     public void cargarTablaEjemplares(List<Ejemplar> lista) {
-        modeloEjemplares.setRowCount(0);
-        for (Ejemplar ej : lista) {
-            modeloEjemplares.addRow(new Object[]{
-                    ej.getId(), ej.getCodigoBarras(), ej.getEstado()
-            });
-        }
-        if (kpiEjemplares != null && (kpiEjemplares.getComponents().length > 0)) {
-            // Actualizar si hay contexto general
-        }
+        this.ejemplaresActuales = lista != null ? new ArrayList<>(lista) : new ArrayList<>();
+        filtrarEjemplares();
+        configurarColumnasEjemplares();
     }
 
     public void setValoresConfiguracion(String multa, String diasP, String maxP, String retencion) {
@@ -775,6 +984,10 @@ public class AdminView extends JFrame {
         spinEjemplaresIniciales.setValue(3);
         tablaLibros.clearSelection();
         modeloEjemplares.setRowCount(0);
+        ejemplaresActuales.clear();
+        if (lblEjTit != null) lblEjTit.setText("Ejemplares Físicos");
+        if (lblEjDetalle != null) lblEjDetalle.setText("(Seleccione un libro en la tabla superior para ver sus copias)");
+        if (txtEjemplarBuscar != null) txtEjemplarBuscar.setText("");
         lblLibroModo.setText("Modo: Registro de Nuevo Título");
         lblLibroModo.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
     }

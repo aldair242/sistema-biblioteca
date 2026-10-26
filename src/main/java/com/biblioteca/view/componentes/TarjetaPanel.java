@@ -58,3 +58,4 @@ public class TarjetaPanel extends JPanel {
         super.paintComponent(g);
     }
 }
+

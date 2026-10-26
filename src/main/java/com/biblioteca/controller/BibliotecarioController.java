@@ -130,7 +130,21 @@ public class BibliotecarioController {
     }
 
     public void buscarCatalogo(String texto) {
-        List<Libro> libros = sf.getCatalogoService().buscarLibros(texto);
+        if (texto == null || texto.trim().isEmpty()) {
+            cargarCatalogo();
+            return;
+        }
+        String q = texto.trim();
+        List<Libro> libros = sf.getCatalogoService().buscarLibros(q);
+        if (libros.isEmpty()) {
+            var ejOpt = sf.getCatalogoService().buscarEjemplarPorCodigo(q);
+            if (ejOpt.isPresent()) {
+                var libOpt = sf.getCatalogoService().buscarPorId(ejOpt.get().getLibroId());
+                if (libOpt.isPresent()) {
+                    libros = List.of(libOpt.get());
+                }
+            }
+        }
         view.cargarTablaCatLibros(libros, id -> sf.getCatalogoService().contarDisponibles(id));
     }
 

@@ -30,6 +30,33 @@ public class TablaEstilizada extends JTable {
         repaint();
     }
 
+    /**
+     * Aplica anchos preferidos por posición a las columnas de la tabla.
+     * Si un valor es <= 0, no se modifica la columna.
+     *
+     * @param anchos Array de anchos en píxeles
+     */
+    public void setAnchosColumnas(int... anchos) {
+        setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        for (int i = 0; i < anchos.length && i < getColumnCount(); i++) {
+            if (anchos[i] > 0) {
+                getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+            }
+        }
+    }
+
+    /**
+     * Fija los límites de ancho de una columna específica.
+     */
+    public void fijarAnchoColumna(int indice, int min, int pref, int max) {
+        if (indice >= 0 && indice < getColumnCount()) {
+            var col = getColumnModel().getColumn(indice);
+            if (min > 0) col.setMinWidth(min);
+            if (pref > 0) col.setPreferredWidth(pref);
+            if (max > 0) col.setMaxWidth(max);
+        }
+    }
+
     private void configurarEstilo() {
         setRowHeight(Tema.ALTO_FILA_TABLA);
         setShowVerticalLines(false);
@@ -203,3 +230,4 @@ public class TablaEstilizada extends JTable {
         }
     }
 }
+

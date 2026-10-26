@@ -113,3 +113,4 @@ public class DialogoModerno extends JDialog {
         return dlg.confirmado;
     }
 }
+
