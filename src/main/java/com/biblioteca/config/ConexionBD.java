@@ -85,6 +85,11 @@ public final class ConexionBD {
         return DriverManager.getConnection(url, usuario, clave);
     }
 
+    /**
+     * Obtiene la URL JDBC de conexión activa.
+     *
+     * @return Cadena con la URL JDBC
+     */
     public static String getUrl() {
         if (!inicializado) {
             cargarPropiedades();
@@ -92,6 +97,11 @@ public final class ConexionBD {
         return url;
     }
 
+    /**
+     * Obtiene el nombre de usuario de conexión configurado.
+     *
+     * @return Nombre de usuario de base de datos
+     */
     public static String getUsuario() {
         if (!inicializado) {
             cargarPropiedades();

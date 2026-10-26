@@ -1,123 +1,170 @@
 # Manual de Usuario - Sistema de Gestión de Biblioteca
 
-Guía paso a paso para la operación del sistema según los tres roles de usuario admitidos, con el nuevo sistema de diseño moderno, barra de navegación lateral y componentes visuales ergonómicos.
+Guía paso a paso para la operación completa del **Sistema de Gestión de Biblioteca**, con diseño visual moderno, pantallas completas por defecto, navegación lateral interactiva, gráficos analíticos y notificaciones multicanal (Push WhatsApp y Correo).
 
 ---
 
-## 1. Inicio de Sesión y Control de Acceso
+## 1. Inicio del Sistema y Control de Acceso
 
-1. Ejecute la aplicación mediante `java -jar target/biblioteca-1.0.0.jar` o desde su IDE.
-2. En la pantalla dividida (**Split-Screen**) de **Acceso al Sistema**:
-   - En el panel derecho de la tarjeta central, ingrese su nombre de usuario o DNI.
-   - Ingrese su contraseña (puede activar el botón con forma de ojo para alternar la visibilidad del texto).
-   - Presione **Ingresar** o presione la tecla `Enter`.
-3. **Mecanismo de Seguridad Anti-Fuerza Bruta**:
-   - Si se ingresan 5 contraseñas erróneas consecutivas, la cuenta quedará suspendida temporalmente por 5 minutos y se mostrará un banner rojo explicativo.
-4. **Cambio Obligatorio de Contraseña**:
-   - Si es el primer ingreso de un cliente (o una cuenta con contraseña provisional), se presentará inmediatamente el diálogo modal obligatorio para establecer una nueva clave personal segura.
+### 1.1 Ejecución de la Aplicación
+Puede iniciar el sistema mediante cualquiera de las siguientes opciones:
+- **Mediante el archivo JAR empaquetado**:
+  ```bash
+  java -jar target/biblioteca-1.0.0.jar
+  ```
+- **A través de Maven**:
+  ```bash
+  mvn exec:java -Dexec.mainClass="com.biblioteca.App"
+  ```
+
+### 1.2 Pantalla de Inicio de Sesión (`LoginView`)
+Al arrancar, se desplegará una pantalla dividida (**Split-Screen**):
+- **Panel Izquierdo**: Marca corporativa "BIBLIOTECA CI", ícono heráldico y descripción del sistema.
+- **Tarjeta Central Derecha**: Formulario estilizado con diseño estable:
+  1. Ingrese su nombre de usuario o DNI en el campo **Usuario o DNI**.
+  2. Ingrese su contraseña en el campo **Contraseña**.
+  3. Puede pulsar el botón de ojo a la derecha para ver u ocultar los caracteres.
+  4. Presione **Ingresar al Sistema** o presione la tecla `Enter`.
+- **Mecanismos de Protección**:
+  - Si ingresa credenciales inválidas, aparecerá un banner rojo explicativo dentro de un espacio reservado sin desplazar ningún campo.
+  - Si acumula 5 intentos fallidos consecutivos, la cuenta se bloqueará automáticamente por 5 minutos contra ataques de fuerza bruta.
+  - Si es el primer ingreso con una clave provisional, se abrirá de inmediato el diálogo para establecer una nueva contraseña personal obligatoria.
 
 ---
 
-## 2. Operación del Rol ADMINISTRADOR
+## 2. Manual del Rol ADMINISTRADOR
 
-Al autenticarse como `ADMIN`, se habilitará la ventana **Panel de Administración** con una barra lateral de navegación interactiva y 5 secciones:
+Al iniciar sesión como `admin`, la ventana **Panel de Administración** se abrirá automáticamente en **pantalla completa** con la barra lateral de navegación:
 
-### 2.1 Módulo «Dashboard»
-- Tarjetas de métricas KPI en tiempo real:
-  - **Total Libros Registrados** en catálogo.
-  - **Total de Ejemplares Físicos** en inventario.
-  - **Préstamos en Curso** atendidos.
-  - **Multas Pendientes de Cobro**.
+```
+[ 88 Inicio ]   [ 8 Bibliotecarios ]   [ 📖 Catálogo y Copias ]   [ ⚙️ Configuración ]   [ 📊 Reportes Excel ]
+```
 
-### 2.2 Módulo «Bibliotecarios»
-- **Registrar Personal**: En el formulario dentro de la tarjeta izquierda, ingrese nombre de usuario, nombre completo y contraseña. Haga clic en **Guardar Bibliotecario**.
-- **Activar / Desactivar**: Seleccione un bibliotecario de la tabla y presione el botón para suspender o restaurar su acceso sin comprometer la auditoría.
-- **Editar / Restablecer Clave**: Permite actualizar el nombre del bibliotecario o generar una clave provisional temporal.
+### 2.1 Sección «Inicio» (Dashboard)
+- Visualice de un vistazo las 4 tarjetas de métricas institucionales:
+  - **Total Títulos en Catálogo**: Cantidad de obras registradas.
+  - **Total de Ejemplares Físicos**: Copias físicas en estantería.
+  - **Préstamos en Curso**: Total de libros prestados a lectores.
+  - **Tarifa Vigente de Mora**: Costo diario configurado por día de retraso.
 
-### 2.3 Módulo «Catálogo de Libros y Ejemplares»
-- **Añadir Título y Copias**: Complete los datos bibliográficos (ISBN, Título, Autor, Categoría, Editorial, Año) e indique la cantidad de ejemplares físicos a crear automáticamente. Presione **Guardar Libro**.
-- **Consultar Copias**: Seleccione un libro en la tabla superior para visualizar todas sus copias físicas en la tabla inferior, identificadas por su código de barras individual (ej. `L0001-001`).
-- **Mantenimiento y Baja**: Seleccione un ejemplar y presione **Modificar Estado** para alternar entre `DISPONIBLE`, `EN_MANTENIMIENTO` o `BAJA`.
-- **Eliminar Libro**: Permite retirar un título del catálogo si ninguna de sus copias se encuentra en préstamo activo.
+### 2.2 Sección «Bibliotecarios»
+- **Registrar Nuevo Bibliotecario**:
+  1. En el panel lateral izquierdo, ingrese nombre de usuario (ej. `biblio2`), nombre completo y contraseña inicial.
+  2. Presione **+ Registrar Bibliotecario**. El registro aparecerá en la tabla.
+- **Modificar / Cambiar Estado**:
+  1. Seleccione un bibliotecario de la tabla central.
+  2. Presione **Activar / Desactivar** para suspender o rehabilitar su acceso.
+  3. Presione **Restablecer Contraseña** para asignarle una nueva clave de acceso.
 
-### 2.4 Módulo «Configuración Global»
-- Permite actualizar los parámetros del sistema en tarjetas visuales:
-  - **Multa por Día (S/)**: Tarifa monetaria por cada día de mora.
-  - **Días de Préstamo**: Duración predeterminada del préstamo.
-  - **Máximo de Préstamos por Lector**: Límite de préstamos simultáneos.
-  - **Días de Retención de Reserva**: Plazo de reserva para recojo.
-- Presione **Guardar Parámetros** y confirme en el cuadro de diálogo modal.
+### 2.3 Sección «Catálogo y Copias»
+- **Buscador en Tiempo Real**:
+  - Escriba en la caja de búsqueda superior por título, autor, ISBN o categoría y presione **Buscar** para filtrar al instante. Presione **Ver Todos** para restablecer la lista completa.
+- **Formulario Colapsable**:
+  - Puede pulsar **▲ Ocultar Formulario** para colapsar los campos de registro y ganar espacio vertical en pantalla completa, o **▼ Mostrar Formulario** para desplegarlo.
+- **Registrar Nuevo Título**:
+  1. Ingrese el código ISBN (ej. `978-0132350884`), Título, Autor, Categoría, Editorial, Año de publicación y la cantidad de copias iniciales a crear.
+  2. Presione **+ Registrar Libro**. El sistema generará el libro y sus ejemplares físicos con códigos de barra secuenciales (ej. `L0001-001`, `L0001-002`).
+- **Gestionar Ejemplares de un Libro**:
+  1. Haga clic en un libro de la tabla superior.
+  2. En la tabla inferior aparecerán todas sus copias físicas con su código de barras y estado actual.
+  3. Puede presionar **+ Agregar Ejemplares** para sumar copias adicionales al título seleccionado.
+  4. Seleccione una copia y presione **Cambiar Estado** para alternar entre `DISPONIBLE`, `EN_MANTENIMIENTO` o `BAJA`.
 
-### 2.5 Módulo «Reportes y Exportación a Excel»
-- Seleccione el reporte deseado en la lista desplegable:
+### 2.4 Sección «Configuración»
+- Edite los 4 parámetros operativos del sistema:
+  - **Tarifa de Multa por Día (S/)**: Costo en Soles por cada día de mora.
+  - **Días Estándar de Préstamo**: Duración normal concedida.
+  - **Límite Máximo de Préstamos**: Tope de libros prestados en simultáneo por lector.
+  - **Días de Retención de Reserva**: Días de espera de un ejemplar devuelto para su recojo.
+- Presione **Guardar Parámetros** y confirme los cambios en el diálogo modal.
+
+### 2.5 Sección «Reportes Excel y Gráficos Estadísticos»
+- Seleccione el tipo de reporte en el selector superior:
   1. *Préstamos Activos y Vencidos*
   2. *Multas Pendientes y Pagadas*
-  3. *Top 10 Libros Más Prestados*
+  3. *Libros Más Prestados (Top 10)*
   4. *Inventario de Ejemplares por Estado*
-- La tabla cargará inmediatamente los datos en pantalla con filas de 36 px de alto y chips visuales de colores.
-- Presione **Exportar a Excel (.xlsx)** para seleccionar la carpeta de destino. Si el archivo ya existe, el sistema solicitará confirmación antes de sobrescribir.
+- **Visualización en 3 Pestañas Modernas**:
+  - **📊 Visualización Gráfica**: Muestra el gráfico analítico en Java2D con barras verticales u horizontales, líneas guía de escala, badges de valores numéricos, porcentajes de cumplimiento y tarjetas de resumen KPI.
+  - **📋 Tabla Detallada**: Muestra las columnas y registros completos con formato tabular limpio y filas alternadas.
+  - **📑 Vista Dividida (Ambas)**: Presenta la gráfica analítica a la izquierda y la tabla de datos a la derecha al mismo tiempo, ideal para pantallas completas panorámicas.
+- **Exportación a Excel (.xlsx)**:
+  - Presione **Exportar a Excel (.xlsx)**, elija la carpeta y guarde el reporte profesional con estilos Apache POI. Si el archivo ya existe, el sistema le pedirá confirmación antes de sobrescribir.
 
 ---
 
-## 3. Operación del Rol BIBLIOTECARIO
+## 3. Manual del Rol BIBLIOTECARIO
 
-Al autenticarse como `BIBLIOTECARIO`, se abrirá el panel operacional de atención con barra lateral:
+Al iniciar sesión como `biblio`, se abrirá el panel operativo con las herramientas de mostrador:
 
-### 3.1 Módulo «Dashboard Operativo»
-- Tarjetas de estado con el recuento en tiempo real de préstamos activos, préstamos vencidos que requieren atención inmediata, clientes registrados y reservas pendientes.
+### 3.1 Módulo «Préstamos»
+- **Emisión de Préstamos Paso a Paso**:
+  1. Ingrese el **DNI del Lector** (8 dígitos).
+  2. Ingrese o escanee el **Código de Barras del Ejemplar** (ej. `L0001-001`).
+  3. Seleccione el **Plazo de Devolución**:
+     - *1 día (Alta demanda / Express)*: Para libros con mucha rotación.
+     - *3 días (Fin de semana / Reserva)*: Préstamos cortos prioritarios.
+     - *7 días (Estándar recomendado)*: Préstamo regular.
+     - *14 días (Investigación)*: Préstamo extendido.
+  4. Presione **Emitir Préstamo**.
+- **Comprobante Digital y Notificación Inmediata**:
+  - Se abrirá automáticamente el **Ticket de Préstamo**:
+    - Exhibe los datos del lector, obra y **la fecha límite de devolución requerida en grande y resaltada en color rojo**.
+    - Botón **📱 Enviar WhatsApp / SMS**: Abre WhatsApp Web o prepara el mensaje para el número móvil del cliente con el recordatorio y la fecha límite exacta.
+    - Botón **✉️ Enviar Correo Confirmación**: Envía la confirmación al correo del lector.
+    - Botón **📋 Copiar Texto del Ticket**: Copia el ticket al portapapeles para su uso o impresión.
+- **Renovación de Préstamo**:
+  - Seleccione un préstamo activo de la tabla y presione **Renovar Préstamo Seleccionado** (máximo 1 renovación y solo si no hay reservas en cola).
 
-### 3.2 Módulo «Préstamos»
-- **Registrar Préstamo**: Ingrese el DNI del cliente y el código de barras del libro (ej. `L0001-001`).
-- Presione **Registrar Préstamo**. El sistema validará automáticamente que el cliente no tenga multas impagas, no supere el tope de préstamos y que el ejemplar esté disponible.
-- Se emitirá un comprobante visual estilizado con la fecha exacta de devolución.
-- **Renovación**: Seleccione un préstamo activo de la tabla y presione **Renovar Préstamo** para extender el plazo (siempre que no existan reservas en cola de espera).
+### 3.2 Módulo «Devoluciones»
+1. Ingrese el código de barras del libro devuelto y presione **Procesar Devolución**.
+2. El sistema verifica la fecha pactada:
+   - Si se devolvió a tiempo, se confirma la recepción y el libro queda disponible (o asignado a una reserva).
+   - Si hubo retraso, se calcula la multa en el acto ($días \times S/ por día$).
+3. Si se generó una multa, se habilita inmediatamente el botón **Cobrar Multa Generada** para registrar el pago en ese instante.
 
-### 3.3 Módulo «Devoluciones»
-- Ingrese el código de barras del libro devuelto y presione **Procesar Devolución**.
-- El sistema calculará automáticamente los días de retraso y el monto de la multa si hubo mora, mostrándolo en una tarjeta de resumen.
-- Si corresponde una multa, se habilitará el botón **Cobrar Multa Inmediatamente** para emitir el comprobante de cancelación.
-- Si el título contaba con solicitudes en cola de espera, el sistema notificará que el ejemplar quedó automáticamente apartado para el siguiente lector.
+### 3.3 Módulo «Clientes» (Lectores)
+- **Registrar Nuevo Lector**:
+  1. Complete DNI, nombres, apellidos, correo y teléfono móvil.
+  2. Presione **Guardar Cliente**.
+  3. Aparecerá una ventana emergente mostrando la **Contraseña Temporal** generada aleatoriamente. Entréguesela al lector; al ingresar por primera vez el sistema le solicitará cambiarla.
+- **Editar y Buscar Lectores**:
+  - Utilice el buscador para filtrar clientes por DNI o apellidos.
+  - Seleccione un cliente en la tabla para cargar sus datos en el formulario y actualizarlos.
 
-### 3.4 Módulo «Gestión de Clientes»
-- **Registro**: Ingrese DNI (8 dígitos), nombres, apellidos, correo y teléfono. Al registrar, el sistema generará una contraseña temporal aleatoria y la mostrará en un modal seguro para entregar al lector.
-- **Búsqueda**: Ingrese el DNI o apellido en el buscador para filtrar en tiempo real.
-- **Modificación**: Permite actualizar datos de contacto del cliente o cambiar su estado de actividad.
+### 3.4 Módulo «Reservas»
+- Consulte la cola de espera de títulos agotados ordenada por llegada (FIFO).
+- Puede registrar una nueva reserva para un lector o cancelar una reserva a solicitud del cliente.
 
-### 3.5 Módulo «Catálogo»
-- Consulta rápida de títulos, disponibilidad y detalle de copias para asistencia inmediata en mostrador.
-
-### 3.6 Módulo «Reservas»
-- Permite registrar a un lector en la lista de espera cuando un libro no cuenta con stock disponible.
-- Muestra la posición en la cola FIFO y permite cancelaciones voluntarias a solicitud del usuario.
-
-### 3.7 Módulo «Multas»
-- Lista todas las sanciones registradas (pendientes y canceladas) con badges de color.
-- Permite seleccionar una multa pendiente y registrar su cobro.
+### 3.5 Módulo «Multas»
+- Visualice la lista de multas pendientes y canceladas.
+- Seleccione cualquier multa pendiente y presione **Cobrar Multa Seleccionada** para liquidarla y dejar al cliente libre de penalizaciones.
 
 ---
 
-## 4. Operación del Rol CLIENTE
+## 4. Manual del Rol CLIENTE (Lector)
 
-Al iniciar sesión como cliente lector (con su DNI y clave personal):
+Al ingresar con el DNI y la contraseña personal:
 
-### 4.1 Módulo «Mi Panel»
-- Resumen personalizado con tarjetas métricas: préstamos activos, reservas en espera y multas pendientes.
+### 4.1 «Inicio / Mi Resumen»
+- Visualice sus métricas personales: cantidad de préstamos activos, reservas en espera y multas pendientes.
 
-### 4.2 Módulo «Explorar Catálogo»
-- **Selector de Vista**: Alterne libremente entre **Vista Cuadrícula** (tarjetas visuales de libros con portada temática) o **Vista Tabla** (datos tabulares compactos).
-- Busque libros por título o autor y filtre por categorías temáticas mediante el menú desplegable.
-- Si un libro tiene 0 copias disponibles, el botón de reserva se habilitará automáticamente para unirse a la cola de espera.
+### 4.2 «Catálogo Bibliográfico»
+- Busque libros por título o autor y filtre por categoría.
+- **Selector de Vista**: Alterne entre **Vista Cuadrícula** (tarjetas visuales de libros) o **Vista Tabla** (listado compacto).
+- Si un libro tiene `0 disponibles`, se activará el botón **Reservar Libro** para unirse a la cola de espera FIFO.
 
-### 4.3 Módulo «Mis Préstamos»
-- Muestra los préstamos actuales del cliente con sus fechas límites.
-- Los préstamos vencidos se destacan visualmente con badge carmesí de alerta.
-- Si no hay cola de reservas para el libro, se puede solicitar una renovación por un nuevo período con un solo clic.
+### 4.3 «Mis Préstamos»
+- Revise las fechas de devolución de los libros que tiene en su poder.
+- **Alerta Visual**: Si un préstamo se encuentra vencido, se destacará automáticamente con un badge de advertencia en color rojo.
+- Si cumple las condiciones, puede presionar **Renovar Préstamo** para extender su plazo.
 
-### 4.4 Módulo «Mis Reservas»
-- Permite consultar el estado de sus reservas (`PENDIENTE`, `LISTA` para recojo) y cancelarlas voluntariamente.
+### 4.4 «Mis Reservas»
+- Consulte si sus reservas se encuentran en espera (`PENDIENTE`) o listas para recojo en biblioteca (`LISTA`).
+- Puede cancelar voluntariamente una reserva si ya no la necesita.
 
-### 4.5 Módulo «Mis Multas»
-- Muestra el historial de sanciones, días de retraso y estado de cobro con badges visuales.
+### 4.5 «Mis Multas»
+- Revise su historial de sanciones, días de demora y confirmación de pagos efectuados.
 
-### 4.6 Módulo «Seguridad»
-- Formulario seguro para renovar la contraseña personal con validación en tiempo real de mayúsculas, minúsculas, números y longitud mínima.
+### 4.6 «Cambiar Contraseña»
+- Formulario de seguridad para actualizar su clave personal ingresando la contraseña actual y la nueva clave robusta.
