@@ -18,6 +18,11 @@ public class App {
 
     private static final Logger logger = LoggerFactory.getLogger(App.class);
 
+        /**
+     * Punto de entrada principal de la aplicación.
+     *
+     * @param args Argumentos de la línea de comandos
+     */
     public static void main(String[] args) {
         logger.info("Iniciando Sistema de Gestión de Préstamos y Devoluciones de Biblioteca...");
 

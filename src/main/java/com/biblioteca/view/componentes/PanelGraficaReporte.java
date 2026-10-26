@@ -38,6 +38,9 @@ public class PanelGraficaReporte extends JPanel {
 
     private final CanvasGrafico canvas;
 
+    /**
+     * Construye un nuevo panel de gráficas analíticas e inicializa sus tarjetas de KPIs y canvas.
+     */
     public PanelGraficaReporte() {
         setLayout(new BorderLayout(0, 12));
         setOpaque(false);
@@ -94,6 +97,9 @@ public class PanelGraficaReporte extends JPanel {
 
     /**
      * Procesa los datos del modelo tabular y actualiza las visualizaciones según el reporte.
+     *
+     * @param tipoReporte Identificador del tipo de reporte (0: Préstamos, 1: Multas, 2: Top Libros, 3: Inventario)
+     * @param model Modelo de tabla DefaultTableModel con las filas y columnas del reporte consultado
      */
     public void actualizarDesdeModelo(int tipoReporte, DefaultTableModel model) {
         datos.clear();
@@ -580,3 +586,4 @@ public class PanelGraficaReporte extends JPanel {
         }
     }
 }
+

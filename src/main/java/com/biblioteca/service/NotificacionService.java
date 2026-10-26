@@ -41,6 +41,10 @@ public class NotificacionService {
     /**
      * Construye el modelo completo de Ticket de Préstamo con todos los datos
      * del cliente, ejemplar, título y fechas de vencimiento.
+     *
+     * @param prestamo Préstamo creado y persistido
+     * @return TicketPrestamo con datos consolidados para emisión y despacho
+     * @throws IllegalArgumentException si el préstamo proporcionado es nulo
      */
     public TicketPrestamo generarTicket(Prestamo prestamo) {
         if (prestamo == null) {
@@ -82,6 +86,9 @@ public class NotificacionService {
 
     /**
      * Genera el texto formateado optimizado para mensajería instantánea / Push (WhatsApp o SMS).
+     *
+     * @param ticket Ticket de préstamo con datos del lector y obra
+     * @return Mensaje de texto formateado con emojis, plazos y fecha de devolución destacada
      */
     public String generarMensajePushWhatsApp(TicketPrestamo ticket) {
         return "🏛️ *BIBLIOTECA CI - COMPROBANTE DE PRÉSTAMO*\n\n" +
@@ -101,6 +108,9 @@ public class NotificacionService {
 
     /**
      * Genera el cuerpo formal del correo electrónico de confirmación.
+     *
+     * @param ticket Ticket de préstamo con datos del lector y obra
+     * @return Contenido textual formal del correo electrónico de confirmación
      */
     public String generarContenidoCorreo(TicketPrestamo ticket) {
         return "Estimado(a) " + ticket.getClienteNombre() + ",\n\n" +
@@ -127,6 +137,9 @@ public class NotificacionService {
 
     /**
      * Genera la representación en texto plano para impresión o copia de comprobante de ticket.
+     *
+     * @param ticket Ticket de préstamo
+     * @return Comprobante en formato ticket monocromático apto para impresión térmica
      */
     public String generarTextoImprimible(TicketPrestamo ticket) {
         return "========================================\n" +
@@ -155,6 +168,9 @@ public class NotificacionService {
 
     /**
      * Envía/despacha notificación Push o abre WhatsApp Web con el mensaje preformateado.
+     *
+     * @param ticket Ticket de préstamo
+     * @return true si la operación se procesó y registró satisfactoriamente
      */
     public boolean enviarPushWhatsApp(TicketPrestamo ticket) {
         String tel = ticket.getClienteTelefono();
@@ -186,6 +202,9 @@ public class NotificacionService {
 
     /**
      * Envía la confirmación por correo electrónico al cliente.
+     *
+     * @param ticket Ticket de préstamo
+     * @return true si la notificación por correo se registró y despachó exitosamente
      */
     public boolean enviarCorreo(TicketPrestamo ticket) {
         String email = ticket.getClienteEmail();
