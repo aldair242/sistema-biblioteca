@@ -758,47 +758,97 @@ public class AdminView extends JFrame {
     }
 
     // --- VISTA CONFIGURACIÓN ---
-    private JPanel crearVistaConfiguracion() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setOpaque(false);
+    private JComponent crearVistaConfiguracion() {
+        JPanel panelContenedor = new JPanel(new GridBagLayout());
+        panelContenedor.setOpaque(false);
+        panelContenedor.setBorder(new EmptyBorder(16, 16, 24, 16));
 
-        TarjetaPanel tarjeta = new TarjetaPanel();
-        tarjeta.setLayout(new BoxLayout(tarjeta, BoxLayout.Y_AXIS));
-        tarjeta.setPreferredSize(new Dimension(540, 480));
-        tarjeta.setBorder(new EmptyBorder(30, 36, 30, 36));
+        TarjetaPanel tarjeta = new TarjetaPanel(new BorderLayout(0, 16));
+        tarjeta.setPreferredSize(new Dimension(600, 610));
+        tarjeta.setMinimumSize(new Dimension(500, 560));
+        tarjeta.setBorder(new EmptyBorder(28, 36, 28, 36));
 
+        // 1. Encabezado con ícono descriptivo
+        JPanel panelEncabezado = new JPanel();
+        panelEncabezado.setLayout(new BoxLayout(panelEncabezado, BoxLayout.Y_AXIS));
+        panelEncabezado.setOpaque(false);
+
+        JPanel panelTituloIcono = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        panelTituloIcono.setOpaque(false);
+        panelTituloIcono.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel lblIcono = new JLabel(Iconos.crearConfiguracion(22, Tema.COLOR_PRIMARIO));
         JLabel lblTit = new JLabel("Parámetros Operativos del Sistema");
         lblTit.setFont(Tema.FUENTE_SUBTITULO);
         lblTit.setForeground(Tema.COLOR_TEXTO);
 
+        panelTituloIcono.add(lblIcono);
+        panelTituloIcono.add(lblTit);
+
         JLabel lblSub = new JLabel("Ajuste los valores de negocio vigentes para préstamos, moras y reservas.");
         lblSub.setFont(Tema.FUENTE_PEQUENA);
         lblSub.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
+        lblSub.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblSub.setBorder(new EmptyBorder(4, 32, 0, 0));
 
-        tarjeta.add(lblTit);
-        tarjeta.add(Box.createVerticalStrut(4));
-        tarjeta.add(lblSub);
-        tarjeta.add(Box.createVerticalStrut(22));
+        panelEncabezado.add(panelTituloIcono);
+        panelEncabezado.add(Box.createVerticalStrut(4));
+        panelEncabezado.add(lblSub);
+
+        tarjeta.add(panelEncabezado, BorderLayout.NORTH);
+
+        // 2. Formulario de Parámetros
+        JPanel panelForm = new JPanel();
+        panelForm.setLayout(new BoxLayout(panelForm, BoxLayout.Y_AXIS));
+        panelForm.setOpaque(false);
 
         txtConfMultaPorDia = new CampoTexto();
-        tarjeta.add(crearCampoConfig("Multa diaria por retraso (S/.):", txtConfMultaPorDia, "Monto aplicado por cada día de mora"));
-        tarjeta.add(Box.createVerticalStrut(14));
+        txtConfMultaPorDia.setPlaceholder("Ej. 0.50");
+        panelForm.add(crearCampoConfig("Multa diaria por retraso (S/.):", txtConfMultaPorDia, "Monto aplicado en soles por cada día de mora acumulado"));
+        panelForm.add(Box.createVerticalStrut(12));
 
         txtConfDiasPrestamo = new CampoTexto();
-        tarjeta.add(crearCampoConfig("Días permitidos de préstamo:", txtConfDiasPrestamo, "Plazo regular de devolución para los lectores"));
-        tarjeta.add(Box.createVerticalStrut(14));
+        txtConfDiasPrestamo.setPlaceholder("Ej. 7");
+        panelForm.add(crearCampoConfig("Días permitidos de préstamo:", txtConfDiasPrestamo, "Plazo regular de devolución asignado a los lectores"));
+        panelForm.add(Box.createVerticalStrut(12));
 
         txtConfMaxPrestamos = new CampoTexto();
-        tarjeta.add(crearCampoConfig("Límite de préstamos simultáneos por cliente:", txtConfMaxPrestamos, "Máxima cantidad de libros activos a la vez"));
-        tarjeta.add(Box.createVerticalStrut(14));
+        txtConfMaxPrestamos.setPlaceholder("Ej. 3");
+        panelForm.add(crearCampoConfig("Límite de préstamos simultáneos por cliente:", txtConfMaxPrestamos, "Cantidad máxima de libros prestados activos a la vez"));
+        panelForm.add(Box.createVerticalStrut(12));
 
         txtConfDiasRetencion = new CampoTexto();
-        tarjeta.add(crearCampoConfig("Días de retención para reserva:", txtConfDiasRetencion, "Tiempo límite para recoger un ejemplar reservado"));
-        tarjeta.add(Box.createVerticalStrut(24));
+        txtConfDiasRetencion.setPlaceholder("Ej. 3");
+        panelForm.add(crearCampoConfig("Días de retención para reserva:", txtConfDiasRetencion, "Tiempo límite para recoger un ejemplar físico reservado"));
 
-        btnConfGuardar = new BotonAcento("Guardar Parámetros de Configuración", Iconos.crearCheck(18, Color.WHITE));
-        btnConfGuardar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
-        btnConfGuardar.setAlignmentX(Component.LEFT_ALIGNMENT);
+        tarjeta.add(panelForm, BorderLayout.CENTER);
+
+        // 3. Footer con nota informativa y botones
+        JPanel panelFooter = new JPanel(new BorderLayout(0, 10));
+        panelFooter.setOpaque(false);
+
+        JLabel lblNota = new JLabel(" Los cambios guardados se aplicarán de inmediato en todas las operaciones del sistema.",
+                Iconos.crearAlerta(14, Tema.COLOR_TEXTO_SECUNDARIO), SwingConstants.LEFT);
+        lblNota.setFont(Tema.FUENTE_PEQUENA);
+        lblNota.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
+        panelFooter.add(lblNota, BorderLayout.NORTH);
+
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        panelBotones.setOpaque(false);
+
+        BotonSecundario btnRestablecer = new BotonSecundario("Restablecer", Iconos.crearActualizar(16, Tema.COLOR_PRIMARIO));
+        btnRestablecer.setPreferredSize(new Dimension(150, 42));
+        btnRestablecer.setToolTipText("Recargar los valores actuales guardados en la base de datos");
+        btnRestablecer.addActionListener(e -> {
+            if (controller != null) {
+                controller.cargarConfiguracion();
+            }
+        });
+
+        btnConfGuardar = new BotonAcento("Guardar Cambios", Iconos.crearCheck(18, Color.WHITE));
+        btnConfGuardar.setFont(Tema.FUENTE_SECCION);
+        btnConfGuardar.setPreferredSize(new Dimension(180, 42));
+        btnConfGuardar.setToolTipText("Guardar la nueva configuración en la base de datos");
 
         btnConfGuardar.addActionListener(e -> {
             if (controller != null) {
@@ -811,9 +861,19 @@ public class AdminView extends JFrame {
             }
         });
 
-        tarjeta.add(btnConfGuardar);
-        panel.add(tarjeta);
-        return panel;
+        panelBotones.add(btnRestablecer);
+        panelBotones.add(btnConfGuardar);
+        panelFooter.add(panelBotones, BorderLayout.CENTER);
+
+        tarjeta.add(panelFooter, BorderLayout.SOUTH);
+        panelContenedor.add(tarjeta);
+
+        JScrollPane scroll = new JScrollPane(panelContenedor);
+        scroll.setBorder(null);
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        return scroll;
     }
 
     // --- VISTA REPORTES ---
@@ -919,12 +979,16 @@ public class AdminView extends JFrame {
         JLabel l = new JLabel(etiqueta);
         l.setFont(Tema.FUENTE_SECCION);
         l.setForeground(Tema.COLOR_TEXTO);
+        l.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel a = new JLabel(ayuda);
         a.setFont(Tema.FUENTE_PEQUENA);
         a.setForeground(Tema.COLOR_TEXTO_SECUNDARIO);
+        a.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         campo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        campo.setPreferredSize(new Dimension(Integer.MAX_VALUE, 40));
+        campo.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         p.add(l);
         p.add(Box.createVerticalStrut(2));
