@@ -794,7 +794,7 @@ public class BibliotecarioView extends JFrame {
         return p;
     }
 
-    // --- MÉTODOS PÚBLICOS DE ACTUALIZACIÓN (COMPATIBILIDAD CON CONTROLLER) ---
+    // Métodos de sincronización con el controlador
     public void cargarTablaClientes(List<Cliente> clientes) {
         modeloClientes.setRowCount(0);
         for (Cliente c : clientes) {
@@ -803,13 +803,13 @@ public class BibliotecarioView extends JFrame {
             });
         }
         if (tablaClientes.getColumnCount() >= 7) {
-            tablaClientes.fijarAnchoColumna(0, 45, 50, 60);    // ID
-            tablaClientes.fijarAnchoColumna(1, 80, 95, 110);   // DNI
-            tablaClientes.fijarAnchoColumna(2, 130, 160, 200); // Nombres
-            tablaClientes.fijarAnchoColumna(3, 130, 160, 200); // Apellidos
-            tablaClientes.fijarAnchoColumna(4, 160, 200, 0);   // Email
-            tablaClientes.fijarAnchoColumna(5, 90, 105, 120);  // Teléfono
-            tablaClientes.fijarAnchoColumna(6, 95, 110, 125);  // Fecha Registro
+            tablaClientes.fijarAnchoColumna(0, 45, 50, 60);
+            tablaClientes.fijarAnchoColumna(1, 80, 95, 110);
+            tablaClientes.fijarAnchoColumna(2, 130, 160, 200);
+            tablaClientes.fijarAnchoColumna(3, 130, 160, 200);
+            tablaClientes.fijarAnchoColumna(4, 160, 200, 0);
+            tablaClientes.fijarAnchoColumna(5, 90, 105, 120);
+            tablaClientes.fijarAnchoColumna(6, 95, 110, 125);
         }
     }
 
@@ -826,13 +826,13 @@ public class BibliotecarioView extends JFrame {
 
     private void configurarColumnasCatLibros() {
         if (tablaCatLibros.getColumnCount() >= 7) {
-            tablaCatLibros.fijarAnchoColumna(0, 45, 50, 60);    // ID
-            tablaCatLibros.fijarAnchoColumna(1, 120, 135, 150); // ISBN
-            tablaCatLibros.fijarAnchoColumna(2, 200, 270, 0);   // Título
-            tablaCatLibros.fijarAnchoColumna(3, 140, 170, 220); // Autor
-            tablaCatLibros.fijarAnchoColumna(4, 100, 120, 150); // Categoría
-            tablaCatLibros.fijarAnchoColumna(5, 110, 130, 160); // Editorial
-            tablaCatLibros.fijarAnchoColumna(6, 75, 85, 105);   // Disponibles
+            tablaCatLibros.fijarAnchoColumna(0, 45, 50, 60);
+            tablaCatLibros.fijarAnchoColumna(1, 120, 135, 150);
+            tablaCatLibros.fijarAnchoColumna(2, 200, 270, 0);
+            tablaCatLibros.fijarAnchoColumna(3, 140, 170, 220);
+            tablaCatLibros.fijarAnchoColumna(4, 100, 120, 150);
+            tablaCatLibros.fijarAnchoColumna(5, 110, 130, 160);
+            tablaCatLibros.fijarAnchoColumna(6, 75, 85, 105);
         }
     }
 
@@ -864,9 +864,9 @@ public class BibliotecarioView extends JFrame {
 
     private void configurarColumnasCatEjemplares() {
         if (tablaCatEjemplares.getColumnCount() >= 3) {
-            tablaCatEjemplares.fijarAnchoColumna(0, 60, 80, 100);  // ID Ejemplar
-            tablaCatEjemplares.fijarAnchoColumna(1, 150, 220, 0);  // Código de Barras
-            tablaCatEjemplares.fijarAnchoColumna(2, 120, 150, 180);// Estado Físico
+            tablaCatEjemplares.fijarAnchoColumna(0, 60, 80, 100);
+            tablaCatEjemplares.fijarAnchoColumna(1, 150, 220, 0);
+            tablaCatEjemplares.fijarAnchoColumna(2, 120, 150, 180);
         }
     }
 
@@ -884,13 +884,13 @@ public class BibliotecarioView extends JFrame {
         if (kpiPrestamosActivos != null) kpiPrestamosActivos.setValor(String.valueOf(activos));
         if (kpiPrestamosVencidos != null) kpiPrestamosVencidos.setValor(String.valueOf(vencidos));
         if (tablaPrestamos.getColumnCount() >= 7) {
-            tablaPrestamos.fijarAnchoColumna(0, 45, 50, 60);   // ID
-            tablaPrestamos.fijarAnchoColumna(1, 75, 85, 100);  // Cliente ID
-            tablaPrestamos.fijarAnchoColumna(2, 75, 85, 100);  // Ejemplar ID
-            tablaPrestamos.fijarAnchoColumna(3, 100, 120, 135);// Fecha Préstamo
-            tablaPrestamos.fijarAnchoColumna(4, 100, 120, 135);// Fecha Vencimiento
-            tablaPrestamos.fijarAnchoColumna(5, 100, 120, 140);// Estado
-            tablaPrestamos.fijarAnchoColumna(6, 80, 95, 110);  // Renovaciones
+            tablaPrestamos.fijarAnchoColumna(0, 45, 50, 60);
+            tablaPrestamos.fijarAnchoColumna(1, 75, 85, 100);
+            tablaPrestamos.fijarAnchoColumna(2, 75, 85, 100);
+            tablaPrestamos.fijarAnchoColumna(3, 100, 120, 135);
+            tablaPrestamos.fijarAnchoColumna(4, 100, 120, 135);
+            tablaPrestamos.fijarAnchoColumna(5, 100, 120, 140);
+            tablaPrestamos.fijarAnchoColumna(6, 80, 95, 110);
         }
     }
 
@@ -906,13 +906,13 @@ public class BibliotecarioView extends JFrame {
         }
         if (kpiReservasEnEspera != null) kpiReservasEnEspera.setValor(String.valueOf(pendientes));
         if (tablaReservas.getColumnCount() >= 7) {
-            tablaReservas.fijarAnchoColumna(0, 45, 50, 60);   // ID
-            tablaReservas.fijarAnchoColumna(1, 75, 85, 100);  // Cliente ID
-            tablaReservas.fijarAnchoColumna(2, 75, 85, 100);  // Libro ID
-            tablaReservas.fijarAnchoColumna(3, 75, 85, 100);  // Ejemplar ID
-            tablaReservas.fijarAnchoColumna(4, 100, 120, 135);// Fecha Reserva
-            tablaReservas.fijarAnchoColumna(5, 100, 120, 135);// Fecha Expiración
-            tablaReservas.fijarAnchoColumna(6, 100, 120, 140);// Estado
+            tablaReservas.fijarAnchoColumna(0, 45, 50, 60);
+            tablaReservas.fijarAnchoColumna(1, 75, 85, 100);
+            tablaReservas.fijarAnchoColumna(2, 75, 85, 100);
+            tablaReservas.fijarAnchoColumna(3, 75, 85, 100);
+            tablaReservas.fijarAnchoColumna(4, 100, 120, 135);
+            tablaReservas.fijarAnchoColumna(5, 100, 120, 135);
+            tablaReservas.fijarAnchoColumna(6, 100, 120, 140);
         }
     }
 
@@ -930,13 +930,13 @@ public class BibliotecarioView extends JFrame {
         }
         if (kpiMultasPendientes != null) kpiMultasPendientes.setValor("S/ " + totalPendiente.toPlainString());
         if (tablaMultas.getColumnCount() >= 7) {
-            tablaMultas.fijarAnchoColumna(0, 45, 50, 60);   // ID
-            tablaMultas.fijarAnchoColumna(1, 75, 85, 100);  // Préstamo ID
-            tablaMultas.fijarAnchoColumna(2, 80, 95, 110);  // Días Retraso
-            tablaMultas.fijarAnchoColumna(3, 90, 110, 130); // Tarifa
-            tablaMultas.fijarAnchoColumna(4, 90, 110, 130); // Monto
-            tablaMultas.fijarAnchoColumna(5, 100, 120, 140);// Estado
-            tablaMultas.fijarAnchoColumna(6, 100, 120, 140);// Fecha Pago
+            tablaMultas.fijarAnchoColumna(0, 45, 50, 60);
+            tablaMultas.fijarAnchoColumna(1, 75, 85, 100);
+            tablaMultas.fijarAnchoColumna(2, 80, 95, 110);
+            tablaMultas.fijarAnchoColumna(3, 90, 110, 130);
+            tablaMultas.fijarAnchoColumna(4, 90, 110, 130);
+            tablaMultas.fijarAnchoColumna(5, 100, 120, 140);
+            tablaMultas.fijarAnchoColumna(6, 100, 120, 140);
         }
     }
 
@@ -973,14 +973,23 @@ public class BibliotecarioView extends JFrame {
         txtDevolucionCodigoBarras.setText("");
     }
 
-    public void mostrarModalClaveTemporal(String dni, String nombre, String claveTemporal) {
+    public void mostrarModalClaveTemporal(String dni, String nombre, String claveTemporal, String email) {
+        String infoCorreo = (email != null && !email.isBlank())
+                ? "<br/><b>Correo Notificado:</b> <span style='color:#2E7D32; font-weight:bold;'>" + email + "</span> (se envió la clave temporal)"
+                : "<br/><b>Correo:</b> <i>No registrado</i>";
+
         String mensaje = "Se ha configurado la cuenta de acceso para el lector:<br/><br/>" +
                 "<b>Nombre:</b> " + nombre + "<br/>" +
                 "<b>Usuario (DNI):</b> " + dni + "<br/>" +
-                "<b>Contraseña Temporal:</b> <span style='color:#3F51B5; font-size:15px; font-weight:bold;'>" + claveTemporal + "</span><br/><br/>" +
+                "<b>Contraseña Temporal:</b> <span style='color:#3F51B5; font-size:15px; font-weight:bold;'>" + claveTemporal + "</span>" +
+                infoCorreo + "<br/><br/>" +
                 "<i>El lector estará obligado a cambiar esta contraseña en su primer inicio de sesión.</i>";
 
         DialogoModerno.mostrarMensaje(this, mensaje, "Credenciales de Lector", DialogoModerno.TipoDialogo.EXITO);
+    }
+
+    public void mostrarModalClaveTemporal(String dni, String nombre, String claveTemporal) {
+        mostrarModalClaveTemporal(dni, nombre, claveTemporal, null);
     }
 
     public void limpiarFormCliente() {

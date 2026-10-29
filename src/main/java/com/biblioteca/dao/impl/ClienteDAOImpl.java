@@ -209,6 +209,31 @@ public class ClienteDAOImpl implements ClienteDAO {
         }
     }
 
+    @Override
+    public Optional<Cliente> buscarPorEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        String sql = "SELECT * FROM cliente WHERE LOWER(email) = LOWER(?)";
+        logger.debug("Ejecutando SQL: {} con email='{}'", sql, email);
+
+        try (Connection conn = GestorTransaccion.obtenerConexion();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, email.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapearCliente(rs));
+                }
+            }
+            return Optional.empty();
+
+        } catch (SQLException e) {
+            logger.error("Error al buscar cliente por email '{}': {}", email, e.getMessage());
+            throw new DaoException("Error al buscar cliente por correo electrónico.", e);
+        }
+    }
+
     private Cliente mapearCliente(ResultSet rs) throws SQLException {
         Cliente c = new Cliente();
         c.setId(rs.getInt("id"));

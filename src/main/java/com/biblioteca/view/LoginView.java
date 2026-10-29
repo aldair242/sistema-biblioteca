@@ -42,7 +42,7 @@ public class LoginView extends JFrame {
         setLocationRelativeTo(null);
         setIconImage(Iconos.crearAppLogoImage(64));
 
-        // Contenedor principal con división horizontal (Split 42% Izquierda / 58% Derecha)
+        // División horizontal: panel de presentación y formulario
         JPanel panelPrincipal = new JPanel(new GridBagLayout());
         panelPrincipal.setBackground(Tema.COLOR_FONDO);
 
@@ -55,7 +55,7 @@ public class LoginView extends JFrame {
         gbc.weightx = 0.42;
         panelPrincipal.add(crearPanelBranding(), gbc);
 
-        // Panel Derecho: Formulario de Login Centrado
+
         gbc.gridx = 1;
         gbc.weightx = 0.58;
         panelPrincipal.add(crearPanelFormulario(), gbc);
@@ -82,7 +82,7 @@ public class LoginView extends JFrame {
                 g2.setPaint(gp);
                 g2.fillRect(0, 0, getWidth(), getHeight());
 
-                // Círculos translúcidos decorativos de fondo
+                // Efectos gráficos decorativos
                 g2.setColor(new Color(255, 255, 255, 12));
                 g2.fillOval(-50, -50, 300, 300);
                 g2.fillOval(getWidth() - 180, getHeight() - 180, 260, 260);
@@ -109,7 +109,7 @@ public class LoginView extends JFrame {
 
         JLabel lblSub = new JLabel("Sistema Integral de Gestión y Catálogo");
         lblSub.setFont(Tema.FUENTE_SECCION);
-        lblSub.setForeground(new Color(224, 231, 255)); // Indigo claro
+        lblSub.setForeground(new Color(224, 231, 255));
         lblSub.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel lblDesc = new JLabel("<html><center style='color:#E2E8F0; font-size:12px; line-height: 1.5;'>" +
@@ -129,7 +129,6 @@ public class LoginView extends JFrame {
 
         panel.add(panelCentro, BorderLayout.CENTER);
 
-        // Pie izquierdo
         JLabel lblFooter = new JLabel("Universidad Tecnológica del Perú • 2026", SwingConstants.CENTER);
         lblFooter.setFont(Tema.FUENTE_PEQUENA);
         lblFooter.setForeground(new Color(197, 202, 233));
@@ -142,9 +141,8 @@ public class LoginView extends JFrame {
         JPanel panelContenedor = new JPanel(new GridBagLayout());
         panelContenedor.setBackground(Tema.COLOR_FONDO);
 
-        // Tarjeta centralizada con GridBagLayout para máxima estabilidad visual
         TarjetaPanel tarjeta = new TarjetaPanel(new GridBagLayout());
-        tarjeta.setPreferredSize(new Dimension(420, 520));
+        tarjeta.setPreferredSize(new Dimension(420, 540));
         tarjeta.setMinimumSize(new Dimension(380, 490));
         tarjeta.setBorder(BorderFactory.createEmptyBorder(32, 36, 32, 36));
 
@@ -153,7 +151,6 @@ public class LoginView extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
 
-        // Título de la tarjeta
         JLabel lblBienvenido = new JLabel("Iniciar Sesión");
         lblBienvenido.setFont(Tema.FUENTE_TITULO);
         lblBienvenido.setForeground(Tema.COLOR_TEXTO);
@@ -168,8 +165,7 @@ public class LoginView extends JFrame {
         gbc.insets = new Insets(0, 0, 10, 0);
         tarjeta.add(lblInstruccion, gbc);
 
-        // Contenedor de Error con CardLayout y ALTURA FIJA RESERVADA (42px)
-        // Esto garantiza que los campos JAMÁS se muevan ni un píxel al mostrar o limpiar errores
+        // Ranura con CardLayout y altura fija para alertas sin desplazar campos
         cardErrorLayout = new CardLayout();
         panelContenedorError = new JPanel(cardErrorLayout);
         panelContenedorError.setOpaque(false);
@@ -177,12 +173,10 @@ public class LoginView extends JFrame {
         panelContenedorError.setMinimumSize(new Dimension(300, 42));
         panelContenedorError.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
 
-        // Estado normal sin error: panel transparente de altura fija
         JPanel panelVacio = new JPanel();
         panelVacio.setOpaque(false);
         panelContenedorError.add(panelVacio, "VACIO");
 
-        // Banner de error en línea estilizado
         panelErrorBanner = new JPanel(new BorderLayout(8, 0));
         panelErrorBanner.setBackground(Tema.COLOR_PELIGRO_CLARO);
         panelErrorBanner.setBorder(BorderFactory.createCompoundBorder(
@@ -205,7 +199,6 @@ public class LoginView extends JFrame {
         gbc.insets = new Insets(0, 0, 10, 0);
         tarjeta.add(panelContenedorError, gbc);
 
-        // Campo Usuario
         JLabel lblUser = new JLabel("Usuario o DNI:");
         lblUser.setFont(Tema.FUENTE_SECCION);
         lblUser.setForeground(Tema.COLOR_TEXTO);
@@ -219,7 +212,6 @@ public class LoginView extends JFrame {
         gbc.insets = new Insets(0, 0, 14, 0);
         tarjeta.add(txtUsuario, gbc);
 
-        // Campo Contraseña
         JLabel lblPass = new JLabel("Contraseña:");
         lblPass.setFont(Tema.FUENTE_SECCION);
         lblPass.setForeground(Tema.COLOR_TEXTO);
@@ -230,14 +222,34 @@ public class LoginView extends JFrame {
         txtPassword = new CampoPassword("Contraseña");
         txtPassword.setPreferredSize(new Dimension(340, 40));
         gbc.gridy = 6;
-        gbc.insets = new Insets(0, 0, 24, 0);
+        gbc.insets = new Insets(0, 0, 8, 0);
         tarjeta.add(txtPassword, gbc);
 
-        // Botón Ingresar
+        // Enlace para recuperación de contraseña
+        JPanel panelOlvido = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        panelOlvido.setOpaque(false);
+        JButton btnOlvido = new JButton("¿Olvidaste tu contraseña? Restablecer aquí");
+        btnOlvido.setFont(Tema.FUENTE_PEQUENA_BOLD);
+        btnOlvido.setForeground(Tema.COLOR_PRIMARIO);
+        btnOlvido.setBorderPainted(false);
+        btnOlvido.setContentAreaFilled(false);
+        btnOlvido.setFocusPainted(false);
+        btnOlvido.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnOlvido.addActionListener(e -> {
+            limpiarBannerError();
+            DialogoRecuperarClave dialogo = new DialogoRecuperarClave(this, controller);
+            dialogo.setVisible(true);
+        });
+        panelOlvido.add(btnOlvido);
+
+        gbc.gridy = 7;
+        gbc.insets = new Insets(0, 0, 16, 0);
+        tarjeta.add(panelOlvido, gbc);
+
         btnIngresar = new BotonPrimario("Ingresar al Sistema", Iconos.crearCheck(18, Color.WHITE));
         btnIngresar.setFont(new Font(Tema.NOMBRE_FUENTE, Font.BOLD, 15));
         btnIngresar.setPreferredSize(new Dimension(340, 44));
-        gbc.gridy = 7;
+        gbc.gridy = 8;
         gbc.insets = new Insets(0, 0, 0, 0);
         tarjeta.add(btnIngresar, gbc);
 
@@ -248,8 +260,7 @@ public class LoginView extends JFrame {
             }
         });
 
-        // Espaciador inferior
-        gbc.gridy = 8;
+        gbc.gridy = 9;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.VERTICAL;
         tarjeta.add(Box.createGlue(), gbc);
@@ -283,6 +294,12 @@ public class LoginView extends JFrame {
 
     public void mostrarMensaje(String mensaje) {
         DialogoModerno.mostrarMensaje(this, mensaje, "Información", DialogoModerno.TipoDialogo.EXITO);
+    }
+
+    public void setUsuario(String usuario) {
+        if (txtUsuario != null && usuario != null) {
+            txtUsuario.setText(usuario);
+        }
     }
 
     public void limpiarClave() {
