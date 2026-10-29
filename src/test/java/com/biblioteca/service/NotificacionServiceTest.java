@@ -125,4 +125,29 @@ class NotificacionServiceTest {
         assertTrue(notificacionService.enviarPushWhatsApp(ticket));
         assertTrue(notificacionService.enviarCorreo(ticket));
     }
+
+    @Test
+    @DisplayName("Generación y despacho de correo de recuperación de contraseña con clave temporal")
+    void testCorreoRecuperacionClave() {
+        String correo = notificacionService.generarContenidoCorreoRecuperacion("Ana Gomez", "45678901", "Temp#1234");
+        assertNotNull(correo);
+        assertTrue(correo.contains("Ana Gomez"));
+        assertTrue(correo.contains("45678901"));
+        assertTrue(correo.contains("Temp#1234"));
+        assertTrue(correo.contains("Por motivos de seguridad, el sistema le solicitará inmediatamente actualizar su contraseña"));
+
+        assertTrue(notificacionService.enviarCorreoRecuperacionClave("ana@test.com", "Ana Gomez", "45678901", "Temp#1234"));
+    }
+
+    @Test
+    @DisplayName("Generación y despacho de correo de bienvenida con credenciales")
+    void testCorreoBienvenida() {
+        String correo = notificacionService.generarContenidoCorreoBienvenida("Pedro Diaz", "87654321", "Init#9999");
+        assertNotNull(correo);
+        assertTrue(correo.contains("Pedro Diaz"));
+        assertTrue(correo.contains("87654321"));
+        assertTrue(correo.contains("Init#9999"));
+
+        assertTrue(notificacionService.enviarCorreoBienvenidaCliente("pedro@test.com", "Pedro Diaz", "87654321", "Init#9999"));
+    }
 }

@@ -1,6 +1,8 @@
 package com.biblioteca.controller;
 
 import com.biblioteca.exception.AutenticacionException;
+import com.biblioteca.exception.ValidacionException;
+import com.biblioteca.model.ResultadoRecuperacion;
 import com.biblioteca.model.Rol;
 import com.biblioteca.model.Usuario;
 import com.biblioteca.service.AuthService;
@@ -54,6 +56,35 @@ public class AuthController {
         } catch (Exception ex) {
             ManejadorExcepciones.manejar(loginView, "autenticación de usuario", ex);
             loginView.limpiarClave();
+        }
+    }
+
+    /**
+     * Procesa la solicitud de recuperación de clave enviando una contraseña temporal al correo registrado.
+     *
+     * @param email   Correo del lector
+     * @param dialogo Diálogo de interfaz de recuperación
+     */
+    public void procesarRecuperacionClave(String email, DialogoRecuperarClave dialogo) {
+        try {
+            ServiceFactory sf = ServiceFactory.getInstancia();
+            ResultadoRecuperacion res = sf.getClienteService().restablecerClavePorEmail(email);
+
+            sf.getNotificacionService().enviarCorreoRecuperacionClave(
+                    res.cliente().getEmail(),
+                    res.cliente().getNombreCompleto(),
+                    res.usuario().getUsername(),
+                    res.claveTemporal()
+            );
+
+            dialogo.mostrarExito(res);
+            loginView.setUsuario(res.usuario().getUsername());
+            loginView.limpiarClave();
+
+        } catch (ValidacionException ex) {
+            dialogo.mostrarError(ex.getMessage());
+        } catch (Exception ex) {
+            ManejadorExcepciones.manejar(dialogo, "recuperación de contraseña", ex);
         }
     }
 

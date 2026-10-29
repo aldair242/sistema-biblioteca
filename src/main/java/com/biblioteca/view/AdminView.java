@@ -383,8 +383,6 @@ public class AdminView extends JFrame {
     private JPanel crearVistaCatalogo() {
         JPanel panel = new JPanel(new BorderLayout(0, 12));
         panel.setOpaque(false);
-
-        // 1. Formulario Libro en Tarjeta (Con interruptor para Ocultar/Mostrar)
         TarjetaPanel tarjetaForm = new TarjetaPanel(new BorderLayout(0, 8));
 
         JPanel panelHeaderForm = new JPanel(new BorderLayout());
@@ -408,8 +406,6 @@ public class AdminView extends JFrame {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(3, 6, 4, 6);
-
-        // Fila 0: ISBN (18%), Título (42%), Autor (24%), Categoría (16%)
         gbc.gridy = 0;
         gbc.gridx = 0; gbc.weightx = 0.18;
         panelCampos.add(crearCampo("ISBN:", txtLibroIsbn = new CampoTexto("978...")), gbc);
@@ -422,8 +418,6 @@ public class AdminView extends JFrame {
 
         gbc.gridx = 3; gbc.weightx = 0.16;
         panelCampos.add(crearCampo("Categoría:", txtLibroCategoria = new CampoTexto("Ej. Programación")), gbc);
-
-        // Fila 1: Editorial (28%), Año (16%), Copias (16%), Espacio libre
         gbc.gridy = 1;
         gbc.gridx = 0; gbc.weightx = 0.28;
         panelCampos.add(crearCampo("Editorial:", txtLibroEditorial = new CampoTexto("Ej. Pearson / Planeta")), gbc);
@@ -467,16 +461,12 @@ public class AdminView extends JFrame {
 
         tarjetaForm.add(panelCuerpoFormLibro, BorderLayout.CENTER);
         panel.add(tarjetaForm, BorderLayout.NORTH);
-
-        // 2. Split de Tablas (Libros arriba con búsqueda, Ejemplares abajo con filtro)
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         splitPane.setResizeWeight(0.60);
         splitPane.setDividerSize(7);
         splitPane.setContinuousLayout(true);
         splitPane.setBorder(null);
         splitPane.setOpaque(false);
-
-        // --- Tarjeta Libros con Barra de Búsqueda Integrada ---
         TarjetaPanel tarjetaLibros = new TarjetaPanel(new BorderLayout(0, 8));
 
         JPanel panelHeaderLibros = new JPanel(new BorderLayout(10, 0));
@@ -516,8 +506,6 @@ public class AdminView extends JFrame {
 
         tarjetaLibros.add(new JScrollPane(tablaLibros), BorderLayout.CENTER);
         splitPane.setTopComponent(tarjetaLibros);
-
-        // --- Tarjeta Ejemplares con Filtro y Acciones ---
         TarjetaPanel tarjetaEjemplares = new TarjetaPanel(new BorderLayout(0, 8));
 
         JPanel panelHeaderEj = new JPanel(new BorderLayout(10, 0));
@@ -561,8 +549,6 @@ public class AdminView extends JFrame {
         splitPane.setBottomComponent(tarjetaEjemplares);
 
         panel.add(splitPane, BorderLayout.CENTER);
-
-        // --- Eventos del Formulario y Toggle ---
         btnToggleFormLibro.addActionListener(e -> {
             boolean visible = !panelCuerpoFormLibro.isVisible();
             panelCuerpoFormLibro.setVisible(visible);
@@ -622,8 +608,6 @@ public class AdminView extends JFrame {
         btnEjemplarAgregar.addActionListener(accionAgregarCopias);
 
         btnLibroLimpiar.addActionListener(e -> limpiarFormLibro());
-
-        // --- Eventos de Búsqueda de Libros ---
         Runnable ejecutarBusquedaLibros = () -> {
             if (controller != null) {
                 controller.buscarCatalogo(txtLibroBuscar.getText());
@@ -649,15 +633,11 @@ public class AdminView extends JFrame {
                 }
             }
         });
-
-        // --- Eventos de Filtro de Ejemplares en Tiempo Real ---
         txtEjemplarBuscar.getDocument().addDocumentListener(new DocumentListener() {
             public void insertUpdate(DocumentEvent e) { filtrarEjemplares(); }
             public void removeUpdate(DocumentEvent e) { filtrarEjemplares(); }
             public void changedUpdate(DocumentEvent e) { filtrarEjemplares(); }
         });
-
-        // --- Selección en Tabla de Libros ---
         tablaLibros.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int row = tablaLibros.getSelectedRow();
@@ -717,22 +697,22 @@ public class AdminView extends JFrame {
 
     private void configurarColumnasLibros() {
         if (tablaLibros.getColumnCount() >= 8) {
-            tablaLibros.fijarAnchoColumna(0, 45, 50, 60);    // ID
-            tablaLibros.fijarAnchoColumna(1, 120, 135, 150); // ISBN
-            tablaLibros.fijarAnchoColumna(2, 200, 270, 0);   // Título (expansible)
-            tablaLibros.fijarAnchoColumna(3, 140, 170, 220); // Autor
-            tablaLibros.fijarAnchoColumna(4, 100, 120, 150); // Categoría
-            tablaLibros.fijarAnchoColumna(5, 110, 130, 160); // Editorial
-            tablaLibros.fijarAnchoColumna(6, 50, 60, 70);    // Año
-            tablaLibros.fijarAnchoColumna(7, 75, 85, 105);   // Disponibles
+            tablaLibros.fijarAnchoColumna(0, 45, 50, 60);
+            tablaLibros.fijarAnchoColumna(1, 120, 135, 150);
+            tablaLibros.fijarAnchoColumna(2, 200, 270, 0);
+            tablaLibros.fijarAnchoColumna(3, 140, 170, 220);
+            tablaLibros.fijarAnchoColumna(4, 100, 120, 150);
+            tablaLibros.fijarAnchoColumna(5, 110, 130, 160);
+            tablaLibros.fijarAnchoColumna(6, 50, 60, 70);
+            tablaLibros.fijarAnchoColumna(7, 75, 85, 105);
         }
     }
 
     private void configurarColumnasEjemplares() {
         if (tablaEjemplares.getColumnCount() >= 3) {
-            tablaEjemplares.fijarAnchoColumna(0, 60, 80, 100);  // ID Ejemplar
-            tablaEjemplares.fijarAnchoColumna(1, 150, 220, 0);  // Código de Barras
-            tablaEjemplares.fijarAnchoColumna(2, 120, 150, 180);// Estado Físico
+            tablaEjemplares.fijarAnchoColumna(0, 60, 80, 100);
+            tablaEjemplares.fijarAnchoColumna(1, 150, 220, 0);
+            tablaEjemplares.fijarAnchoColumna(2, 120, 150, 180);
         }
     }
 
@@ -912,12 +892,8 @@ public class AdminView extends JFrame {
 
         JTabbedPane tabsReportes = new JTabbedPane();
         tabsReportes.setFont(Tema.FUENTE_SECCION);
-
-        // Tab 0: Gráfica Estadística interactiva
         panelGraficaReporte = new PanelGraficaReporte();
         tabsReportes.addTab("📊 Visualización Gráfica", panelGraficaReporte);
-
-        // Tab 1: Tabla de Datos Tabulares
         modeloReporte = new DefaultTableModel();
         tablaReporte = new TablaEstilizada(modeloReporte);
         tablaReporte.setMensajeVacio("Presione 'Actualizar Datos' para generar la consulta de reporte.");
@@ -925,8 +901,6 @@ public class AdminView extends JFrame {
         panelTablaContenedor.setOpaque(false);
         panelTablaContenedor.add(new JScrollPane(tablaReporte), BorderLayout.CENTER);
         tabsReportes.addTab("📋 Tabla Detallada", panelTablaContenedor);
-
-        // Tab 2: Vista Dividida (Gráfica + Tabla)
         JSplitPane splitReportes = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitReportes.setOpaque(false);
         splitReportes.setBorder(null);
@@ -998,7 +972,7 @@ public class AdminView extends JFrame {
         return p;
     }
 
-    // --- MÉTODOS PÚBLICOS DE ACTUALIZACIÓN (COMPATIBILIDAD CON CONTROLLER) ---
+    // Métodos de sincronización con el controlador
     public void cargarTablaBibliotecarios(List<Usuario> lista) {
         modeloBibliotecarios.setRowCount(0);
         for (Usuario u : lista) {

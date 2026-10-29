@@ -55,6 +55,11 @@ class ClienteDAOTest extends BaseDAOTest {
         assertTrue(optUser.isPresent());
         assertEquals(guardado.getId(), optUser.get().getId());
 
+        // 5b. Buscar por Email
+        Optional<Cliente> optEmail = clienteDAO.buscarPorEmail(guardado.getEmail());
+        assertTrue(optEmail.isPresent());
+        assertEquals(guardado.getId(), optEmail.get().getId());
+
         // 6. Actualizar
         guardado.setTelefono("999888777");
         guardado.setEmail("actualizado@test.com");

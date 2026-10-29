@@ -4,6 +4,7 @@ import com.biblioteca.dao.*;
 import com.biblioteca.exception.AccesoDenegadoException;
 import com.biblioteca.exception.ValidacionException;
 import com.biblioteca.model.*;
+import com.biblioteca.model.ResultadoRecuperacion;
 import com.biblioteca.security.SesionActual;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -229,6 +230,27 @@ class ServiciosNegocioTest {
         assertNotNull(claveTemp, "La clave temporal no debe ser nula");
         assertEquals(8, claveTemp.length(), "La clave temporal generada debe tener 8 caracteres");
         verify(usuarioDAO).cambiarClave(eq(250), anyString(), eq(true));
+    }
+
+    @Test
+    @DisplayName("Caso 9b: Restablecer clave por email registrado genera clave y actualiza usuario")
+    void testRestablecerClavePorEmail() {
+        String email = "lector.recuperar@test.com";
+        Cliente cliente = new Cliente(10, 100, "77665544", "Elena", "Vega", email, "987654321", LocalDate.now());
+        Usuario usuario = new Usuario(100, "77665544", "hashOld", Rol.CLIENTE, "Elena Vega", true, false, 2, null);
+
+        when(clienteDAO.buscarPorEmail(email)).thenReturn(Optional.of(cliente));
+        when(usuarioDAO.buscarPorId(100)).thenReturn(Optional.of(usuario));
+
+        ResultadoRecuperacion res = clienteService.restablecerClavePorEmail(email);
+
+        assertNotNull(res);
+        assertEquals("77665544", res.usuario().getUsername());
+        assertEquals(email, res.cliente().getEmail());
+        assertNotNull(res.claveTemporal());
+        assertEquals(8, res.claveTemporal().length());
+
+        verify(usuarioDAO).cambiarClave(eq(100), anyString(), eq(true));
     }
 
     @Test

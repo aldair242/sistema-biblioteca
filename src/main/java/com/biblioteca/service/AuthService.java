@@ -33,13 +33,12 @@ public class AuthService {
     }
 
     /**
-     * Autentica a un usuario verificando credenciales, estado activo y bloqueo temporal por intentos fallidos.
-     * NUNCA registra contraseñas en logs ni revela si el usuario existe o no ante fallas.
+     * Autentica a un usuario verificando credenciales, estado activo y control de bloqueo.
      *
      * @param username Nombre de cuenta de usuario
      * @param clave    Contraseña en texto plano
      * @return Usuario autenticado con sesión iniciada
-     * @throws AutenticacionException Si las credenciales son incorrectas o la cuenta está bloqueada/inactiva
+     * @throws AutenticacionException Si las credenciales son incorrectas o la cuenta está bloqueada o inactiva
      */
     public Usuario login(String username, String clave) {
         if (username == null || username.trim().isEmpty() || clave == null || clave.isEmpty()) {
