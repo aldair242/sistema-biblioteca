@@ -1,16 +1,22 @@
 # Matriz de Casos de Prueba y Cobertura (TDD)
 
-El proyecto cuenta con una batería integral de **54 pruebas unitarias y de integración** desarrolladas bajo el estándar **JUnit 5**, **Mockito** y transacciones aisladas con rollback contra la base de datos real MySQL `biblioteca`, garantizando una cobertura total sobre las reglas de negocio, criptografía, persistencia y exportación.
+El proyecto cuenta con una batería integral de **57 pruebas unitarias y de integración** desarrolladas bajo el estándar **JUnit 5**, **Mockito** y transacciones aisladas con rollback contra la base de datos real MySQL `biblioteca`, garantizando una cobertura total sobre las reglas de negocio, criptografía, persistencia y exportación.
+
+3. **`testCorreoRecuperacionClave`**:
+   - Comprueba la generación del contenido formal de correo de recuperación con instrucciones de cambio obligatorio de clave y su despacho satisfactorio.
+
+4. **`testCorreoBienvenida`**:
+   - Verifica el formato del correo de bienvenida para nuevos clientes con credenciales iniciales de acceso y su despacho.
 
 ---
 
-## 1. Resumen de Ejecución de Pruebas (54 / 54 Aprobadas)
+## 1. Resumen de Ejecución de Pruebas (57 / 57 Aprobadas)
 
 ```text
 [INFO] -------------------------------------------------------
 [INFO]  T E S T S
 [INFO] -------------------------------------------------------
-[INFO] Tests run: 54, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 57, Failures: 0, Errors: 0, Skipped: 0
 [INFO] BUILD SUCCESS
 ```
 

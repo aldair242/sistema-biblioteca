@@ -108,7 +108,12 @@ Al registrar la devolución de un ejemplar en `PrestamoService.registrarDevoluci
      - `debe_cambiar_clave`: `true`.
 3. **Entrega de Credenciales**:
    - La contraseña temporal se presenta una sola vez en un cuadro de diálogo seguro para ser comunicada al usuario.
-4. **Obligación de Cambio de Contraseña**:
+4. **Notificación al Correo Electrónico**:
+   - Al registrar un cliente o restablecer su clave, el sistema genera y despacha automáticamente un correo formal con su usuario (DNI), contraseña provisional e instrucciones de acceso.
+5. **Autoservicio de Recuperación por Correo**:
+   - Cualquier lector puede solicitar el restablecimiento de clave desde la pantalla de login ingresando su correo registrado.
+   - El sistema valida que el correo corresponda a un cliente activo, genera una nueva clave temporal de 8 caracteres, resetea bloqueos por intentos fallidos y vuelve a activar `debe_cambiar_clave = true`.
+6. **Obligación de Cambio de Contraseña**:
    - Al iniciar sesión con `debe_cambiar_clave = true`, el sistema bloquea cualquier otra acción y despliega el diálogo modal de actualización obligatoria de clave. La nueva clave debe satisfacer las políticas de contraseñas robustas (mínimo 8 caracteres, al menos una mayúscula, minúscula y número).
 
 ---
