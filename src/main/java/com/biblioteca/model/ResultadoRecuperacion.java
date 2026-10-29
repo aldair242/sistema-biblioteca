@@ -9,3 +9,4 @@ package com.biblioteca.model;
  */
 public record ResultadoRecuperacion(Cliente cliente, Usuario usuario, String claveTemporal) {
 }
+

@@ -25,6 +25,11 @@ Al arrancar, se desplegará una pantalla dividida (**Split-Screen**):
   2. Ingrese su contraseña en el campo **Contraseña**.
   3. Puede pulsar el botón de ojo a la derecha para ver u ocultar los caracteres.
   4. Presione **Ingresar al Sistema** o presione la tecla `Enter`.
+- **Recuperación de Contraseña por Correo**:
+  - Si olvidó su contraseña, pulse el enlace **«¿Olvidaste tu contraseña? Restablecer aquí»**.
+  - Ingrese el correo electrónico registrado con su cuenta de lector en el diálogo modal.
+  - El sistema validará su correo, generará una clave temporal y la despachará por correo electrónico.
+  - Al iniciar sesión con esta clave temporal, el sistema abrirá automáticamente el diálogo de cambio obligatorio para configurar su contraseña definitiva.
 - **Mecanismos de Protección**:
   - Si ingresa credenciales inválidas, aparecerá un banner rojo explicativo dentro de un espacio reservado sin desplazar ningún campo.
   - Si acumula 5 intentos fallidos consecutivos, la cuenta se bloqueará automáticamente por 5 minutos contra ataques de fuerza bruta.

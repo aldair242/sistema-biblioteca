@@ -237,3 +237,4 @@ public class DialogoRecuperarClave extends JDialog {
         cardLayout.show(panelTarjetas, "EXITO");
     }
 }
+

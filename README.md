@@ -83,7 +83,7 @@ Consulte la carpeta [`docs/`](file:///c:/Users/jerem/OneDrive/Desktop/BIBLIOTECA
 - [**Modelo de Datos**](file:///c:/Users/jerem/OneDrive/Desktop/BIBLIOTECA%20CI/docs/modelo-datos.md): Diagrama Entidad-Relación Mermaid, tablas, llaves e integridad referencial.
 - [**Reglas de Negocio**](file:///c:/Users/jerem/OneDrive/Desktop/BIBLIOTECA%20CI/docs/reglas-negocio.md): Fórmulas de cálculo de multas, validaciones de préstamo y cola de reservas FIFO.
 - [**Manual de Usuario**](file:///c:/Users/jerem/OneDrive/Desktop/BIBLIOTECA%20CI/docs/manual-usuario.md): Guía operativa detallada paso a paso para cada uno de los 3 roles.
-- [**Casos de Prueba (TDD)**](file:///c:/Users/jerem/OneDrive/Desktop/BIBLIOTECA%20CI/docs/casos-de-prueba.md): Resumen de las 46 pruebas JUnit 5 + Mockito y pruebas con rollback.
+- [**Casos de Prueba (TDD)**](file:///c:/Users/jerem/OneDrive/Desktop/BIBLIOTECA%20CI/docs/casos-de-prueba.md): Resumen de las 57 pruebas JUnit 5 + Mockito y pruebas con rollback.
 
 ---
 
