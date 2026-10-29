@@ -33,5 +33,12 @@ public interface ClienteDAO extends GenericDAO<Cliente> {
      * @return Optional con el cliente si existe
      */
     Optional<Cliente> buscarPorUsuarioId(int usuarioId);
-}
 
+    /**
+     * Busca un cliente por su dirección de correo electrónico registrada.
+     *
+     * @param email Correo electrónico registrado del cliente
+     * @return Optional con el cliente si existe
+     */
+    Optional<Cliente> buscarPorEmail(String email);
+}

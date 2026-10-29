@@ -47,7 +47,13 @@ public class BibliotecarioController {
             Cliente nuevo = new Cliente(null, null, dni.trim(), nombres.trim(), apellidos.trim(), email.trim(), telefono.trim(), null);
             String claveTemporal = sf.getClienteService().registrarCliente(nuevo);
 
-            view.mostrarModalClaveTemporal(nuevo.getDni(), nuevo.getNombreCompleto(), claveTemporal);
+            if (nuevo.getEmail() != null && !nuevo.getEmail().isBlank()) {
+                sf.getNotificacionService().enviarCorreoBienvenidaCliente(
+                        nuevo.getEmail(), nuevo.getNombreCompleto(), nuevo.getDni(), claveTemporal
+                );
+            }
+
+            view.mostrarModalClaveTemporal(nuevo.getDni(), nuevo.getNombreCompleto(), claveTemporal, nuevo.getEmail());
             view.limpiarFormCliente();
             cargarClientes();
         } catch (Exception ex) {
@@ -98,7 +104,14 @@ public class BibliotecarioController {
                 Cliente c = sf.getClienteService().buscarPorId(id)
                         .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
                 String claveTemp = sf.getClienteService().restablecerClaveTemporal(id);
-                view.mostrarModalClaveTemporal(c.getDni(), c.getNombreCompleto(), claveTemp);
+
+                if (c.getEmail() != null && !c.getEmail().isBlank()) {
+                    sf.getNotificacionService().enviarCorreoRecuperacionClave(
+                            c.getEmail(), c.getNombreCompleto(), c.getDni(), claveTemp
+                    );
+                }
+
+                view.mostrarModalClaveTemporal(c.getDni(), c.getNombreCompleto(), claveTemp, c.getEmail());
             } catch (Exception ex) {
                 ManejadorExcepciones.manejar(view, "restablecimiento de contraseña", ex);
             }

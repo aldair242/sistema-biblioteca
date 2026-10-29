@@ -18,7 +18,7 @@ public class App {
 
     private static final Logger logger = LoggerFactory.getLogger(App.class);
 
-        /**
+    /**
      * Punto de entrada principal de la aplicación.
      *
      * @param args Argumentos de la línea de comandos

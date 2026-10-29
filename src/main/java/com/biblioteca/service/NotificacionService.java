@@ -206,6 +206,117 @@ public class NotificacionService {
      * @param ticket Ticket de préstamo
      * @return true si la notificación por correo se registró y despachó exitosamente
      */
+    /**
+     * Genera el contenido formal del correo de recuperación de contraseña.
+     *
+     * @param clienteNombre Nombre completo del lector
+     * @param username      Nombre de usuario o DNI
+     * @param claveTemporal Contraseña temporal generada
+     * @return Mensaje formal de notificación
+     */
+    public String generarContenidoCorreoRecuperacion(String clienteNombre, String username, String claveTemporal) {
+        return "Estimado(a) " + clienteNombre + ":\n\n" +
+                "Hemos recibido una solicitud para restablecer la contraseña de su cuenta en el Sistema de Gestión de Biblioteca CI.\n\n" +
+                "--------------------------------------------------\n" +
+                "CREDENCIALES TEMPORALES DE ACCESO\n" +
+                "--------------------------------------------------\n" +
+                "• Usuario de acceso (DNI): " + username + "\n" +
+                "• Contraseña Temporal: " + claveTemporal + "\n" +
+                "--------------------------------------------------\n\n" +
+                "INSTRUCCIONES DE ACCESO:\n" +
+                "1. Inicie sesión en el sistema ingresando su DNI y esta contraseña temporal.\n" +
+                "2. Por motivos de seguridad, el sistema le solicitará inmediatamente actualizar su contraseña por una clave personal definitiva.\n" +
+                "3. Su nueva contraseña debe contener al menos 8 caracteres, incluyendo una letra mayúscula y un número.\n\n" +
+                "Si usted no solicitó este cambio, por favor contacte de inmediato al personal de la biblioteca.\n\n" +
+                "Atentamente,\n" +
+                "Equipo de Biblioteca CI\n" +
+                "Universidad Tecnológica del Perú 2026\n";
+    }
+
+    /**
+     * Genera el contenido formal del correo de bienvenida para nuevos lectores.
+     *
+     * @param clienteNombre Nombre del lector
+     * @param username      DNI / Usuario de acceso
+     * @param claveTemporal Contraseña temporal inicial
+     * @return Mensaje de bienvenida
+     */
+    public String generarContenidoCorreoBienvenida(String clienteNombre, String username, String claveTemporal) {
+        return "Estimado(a) " + clienteNombre + ":\n\n" +
+                "¡Bienvenido(a) a la Biblioteca CI de la Universidad Tecnológica del Perú!\n\n" +
+                "Su cuenta de lector ha sido registrada exitosamente.\n\n" +
+                "--------------------------------------------------\n" +
+                "CREDENCIALES INICIALES DE ACCESO\n" +
+                "--------------------------------------------------\n" +
+                "• Usuario de acceso (DNI): " + username + "\n" +
+                "• Contraseña Temporal: " + claveTemporal + "\n" +
+                "--------------------------------------------------\n\n" +
+                "En su primer inicio de sesión, el sistema le solicitará cambiar esta clave por una contraseña personal.\n\n" +
+                "Atentamente,\n" +
+                "Equipo de Biblioteca CI\n" +
+                "Universidad Tecnológica del Perú 2026\n";
+    }
+
+    /**
+     * Envía la notificación de clave temporal de recuperación al correo registrado.
+     *
+     * @param email         Correo electrónico registrado
+     * @param clienteNombre Nombre del usuario
+     * @param username      Usuario de acceso
+     * @param claveTemporal Clave temporal generada
+     * @return true si la notificación se procesó correctamente
+     */
+    public boolean enviarCorreoRecuperacionClave(String email, String clienteNombre, String username, String claveTemporal) {
+        String cuerpo = generarContenidoCorreoRecuperacion(clienteNombre, username, claveTemporal);
+
+        logger.info("CORREO RECUPERACION DESPACHADO -> Destino: {}, Usuario: '{}', Lector: '{}'",
+                email != null && !email.isBlank() ? email : "[SIN EMAIL]", username, clienteNombre);
+
+        if (email != null && !email.isBlank()) {
+            try {
+                String subject = "Recuperacion de Contrasena - Biblioteca CI";
+                String mailto = "mailto:" + email + "?subject=" + URLEncoder.encode(subject, StandardCharsets.UTF_8)
+                        + "&body=" + URLEncoder.encode(cuerpo, StandardCharsets.UTF_8);
+                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.MAIL)) {
+                    Desktop.getDesktop().mail(new URI(mailto));
+                }
+            } catch (Exception ex) {
+                logger.warn("No se pudo invocar cliente de correo nativo: {}", ex.getMessage());
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Envía el correo de bienvenida con credenciales iniciales al nuevo lector.
+     *
+     * @param email         Correo electrónico del cliente
+     * @param clienteNombre Nombre del lector
+     * @param username      DNI del cliente
+     * @param claveTemporal Clave temporal asignada
+     * @return true si la notificación se procesó correctamente
+     */
+    public boolean enviarCorreoBienvenidaCliente(String email, String clienteNombre, String username, String claveTemporal) {
+        String cuerpo = generarContenidoCorreoBienvenida(clienteNombre, username, claveTemporal);
+
+        logger.info("CORREO BIENVENIDA DESPACHADO -> Destino: {}, Usuario: '{}', Lector: '{}'",
+                email != null && !email.isBlank() ? email : "[SIN EMAIL]", username, clienteNombre);
+
+        if (email != null && !email.isBlank()) {
+            try {
+                String subject = "Bienvenido a Biblioteca CI - Credenciales de Acceso";
+                String mailto = "mailto:" + email + "?subject=" + URLEncoder.encode(subject, StandardCharsets.UTF_8)
+                        + "&body=" + URLEncoder.encode(cuerpo, StandardCharsets.UTF_8);
+                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.MAIL)) {
+                    Desktop.getDesktop().mail(new URI(mailto));
+                }
+            } catch (Exception ex) {
+                logger.warn("No se pudo invocar cliente de correo nativo: {}", ex.getMessage());
+            }
+        }
+        return true;
+    }
+
     public boolean enviarCorreo(TicketPrestamo ticket) {
         String email = ticket.getClienteEmail();
         String cuerpo = generarContenidoCorreo(ticket);

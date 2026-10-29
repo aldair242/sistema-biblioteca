@@ -7,6 +7,7 @@ import com.biblioteca.model.Cliente;
 import com.biblioteca.model.Multa;
 import com.biblioteca.model.Rol;
 import com.biblioteca.model.Usuario;
+import com.biblioteca.model.ResultadoRecuperacion;
 import com.biblioteca.security.Autorizador;
 import com.biblioteca.security.PasswordHasher;
 import com.biblioteca.security.Validador;
@@ -202,6 +203,50 @@ public class ClienteService {
         usuarioDAO.cambiarClave(cliente.getUsuarioId(), hash, true);
         logger.info("Contraseña temporal restablecida para cliente ID {} (DNI '{}')", clienteId, cliente.getDni());
         return claveTemporal;
+    }
+
+    /**
+     * Busca un cliente por su dirección de correo electrónico registrada.
+     *
+     * @param email Correo electrónico
+     * @return Optional con el cliente si existe
+     */
+    public Optional<Cliente> buscarPorEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        return clienteDAO.buscarPorEmail(email.trim());
+    }
+
+    /**
+     * Restablece la contraseña de un cliente mediante su correo registrado.
+     * Genera una nueva clave temporal y fuerza el cambio en el próximo acceso.
+     *
+     * @param email Correo electrónico registrado
+     * @return Resultado con el cliente, usuario y clave temporal generada
+     * @throws ValidacionException Si el correo es inválido o no existe un cliente activo
+     */
+    public ResultadoRecuperacion restablecerClavePorEmail(String email) {
+        Validador.validarEmail(email);
+
+        Cliente cliente = clienteDAO.buscarPorEmail(email.trim())
+                .orElseThrow(() -> new ValidacionException("No existe ninguna cuenta asociada al correo: " + email.trim()));
+
+        Usuario usuario = usuarioDAO.buscarPorId(cliente.getUsuarioId())
+                .orElseThrow(() -> new ValidacionException("No se encontró la cuenta de usuario vinculada."));
+
+        if (!usuario.isActivo()) {
+            throw new ValidacionException("La cuenta vinculada a este correo se encuentra inactiva. Comuníquese con la biblioteca.");
+        }
+
+        String claveTemporal = generarClaveTemporal();
+        String hash = PasswordHasher.hashear(claveTemporal);
+
+        usuarioDAO.cambiarClave(usuario.getId(), hash, true);
+        logger.info("Contraseña temporal generada para recuperación vía email '{}' (Usuario ID {}, DNI '{}')",
+                email.trim(), usuario.getId(), cliente.getDni());
+
+        return new ResultadoRecuperacion(cliente, usuario, claveTemporal);
     }
 
     public List<Cliente> buscarClientes(String texto) {
